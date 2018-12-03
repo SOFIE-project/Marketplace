@@ -4,7 +4,7 @@ Offer Marketplace
 This repository contains a **template** that implements the *Offer
 Marketplace* business platform as described as part of the SOFIE
 project's [Business Platforms
-document](https://docs.google.com/document/d/19wGzCbKNv2UxkloCV0mr-qwxOU9dW2oBG4punVEFoWk).
+document](https://media.voog.com/0000/0042/0957/files/SOFIE_D3.2-Business_Platform_Lab_Prototype_Release.pdf).
 
 # How to use this template?
 
