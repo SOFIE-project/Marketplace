@@ -11,7 +11,7 @@ import time
 import dateparser
 import typing
 from datetime import datetime
-from web3 import Web3, HTTPProvider, TestRPCProvider
+from web3 import Web3, HTTPProvider
 from web3.contract import ConciseContract
 from sofie_offer_marketplace.ethereum import Web3Contract
 
@@ -242,7 +242,8 @@ Market specific:
                         o.offer_id,
                         o.price,
                         o.author,
-                        " (DECIDED)" if request.decided_offer and (o.offer_id == request.decided_offer.offer_id) else ""))
+                        " (DECIDED)" if request.decided_offer and (
+                                o.offer_id == request.decided_offer.offer_id) else ""))
 
     elif args.command == 'add-offer':
         request = m.get_request(args.request)
@@ -260,5 +261,9 @@ Market specific:
         assert False, "unhandled command {}".format(args.command)
 
 
-if __name__ == '__main__':
+def async_main():
     asyncio.get_event_loop().run_until_complete(main())
+
+
+if __name__ == '__main__':
+    async_main()
