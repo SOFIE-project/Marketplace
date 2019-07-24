@@ -23,16 +23,20 @@ setup(
     author_email='sofie-offer-marketplace@sofie-iot.eu',
     license='APL 2.0',
     package_dir={'': 'src'},
-    packages=['sofie_offer_marketplace', 'sofie_offer_marketplace_service', 'sofie_offer_marketplace_ui'],
+    packages=['sofie_offer_marketplace', 'sofie_offer_marketplace_service', 'sofie_offer_marketplace_ui',
+              'sofie_offer_marketplace_cli'],
     ## There is nothing as-of in the reference platform, so keeping
     ## this commented.
-    #dependency_links=['git+ssh://git@version.aalto.fi/sofie/open-source/reference-platform.git#egg=sofie_reference_platform-0.1'],
+    # dependency_links=['git+ssh://git@version.aalto.fi/sofie/open-source/reference-platform.git#egg=sofie_reference_platform-0.1'],
     install_requires=[
-        #'sofie_reference_platform',
+        # 'sofie_reference_platform',
         'Flask',
         'web3',
-        'dateparser',  # for flower.py
+        'dateparser',  # for offer-marketplace-cli
     ],
+    entry_points={
+        'console_scripts': ['offer-marketplace-cli=sofie_offer_marketplace_cli.offer_marketplace_cli:async_main']
+    },
     tests_require=['pytest', 'pytest-asyncio', 'pytest-mock'],
     setup_requires=['tox-setuptools'],
     zip_safe=False)
