@@ -14,7 +14,7 @@
 // implied.  See the License for the specific language governing
 // permissions and limitations under the License.
 
-pragma solidity ^0.4.23;
+pragma solidity ^0.5.8;
 pragma experimental ABIEncoderV2;
 
 import "./MarketPlace.sol";
@@ -75,12 +75,12 @@ contract FlowerMarketPlace is MarketPlace, MultiManagersBaseContract {
     }
 
     // Get the Identifiers of the requests which are not closed yet.
-    function getOpenRequestIdentifiers() public view returns (int status, uint[]) {
+    function getOpenRequestIdentifiers() public view returns (int status, uint[] memory) {
         return (int(Status.Successful), openRequestIDs);
     }
 
     // Get the Identifiers of the requests which are closed.
-    function getClosedRequestIdentifiers() public view returns (int status, uint[]) {
+    function getClosedRequestIdentifiers() public view returns (int status, uint[] memory) {
         return (int(Status.Successful), closedRequestIDs);
     }
 
@@ -105,7 +105,7 @@ contract FlowerMarketPlace is MarketPlace, MultiManagersBaseContract {
     }
 
     // Get offer identifiers for a request.
-    function getRequestOfferIDs(uint requestIdentifier) public view returns (int status, uint[] offerIDs) {
+    function getRequestOfferIDs(uint requestIdentifier) public view returns (int status, uint[] memory offerIDs) {
         if(!requests[requestIdentifier].isDefined) {
             return (int(Status.UndefinedID), new uint[](0));
         }
@@ -122,7 +122,7 @@ contract FlowerMarketPlace is MarketPlace, MultiManagersBaseContract {
     // Get general details of an offer.
     function getOffer(uint offerIdentifier) public view returns (int status, uint requestID, address offerMaker, uint stage) {
         if(!offers[offerIdentifier].isDefined) {
-            return (int(Status.UndefinedID), 0, 0, 0);
+            return (int(Status.UndefinedID), 0, address(0), 0);
         }
         require(offers[offerIdentifier].isDefined);
 
@@ -219,7 +219,7 @@ contract FlowerMarketPlace is MarketPlace, MultiManagersBaseContract {
     }
 
     // Get the identifier of accepted offer for a decided request.
-    function getRequestDecision(uint requestIdentifier) public view returns (int status, uint[] acceptedOfferIDs) {
+    function getRequestDecision(uint requestIdentifier) public view returns (int status, uint[] memory acceptedOfferIDs) {
         if(!requests[requestIdentifier].isDefined) {
             return (int(Status.UndefinedID), new uint[](0));
         }
@@ -323,7 +323,7 @@ contract FlowerMarketPlace is MarketPlace, MultiManagersBaseContract {
     // Choose which offer to accept, based on the proposed prices. The decision process can differ for other markets,
     // and it can be very complicated. Even in some cases, the decision must be made in the backend.
     // (only owner or managers can access this function).
-    function decideRequest(uint requestIdentifier, uint[] /*acceptedOfferIDs*/) external returns (int status) {
+    function decideRequest(uint requestIdentifier, uint[] calldata /*acceptedOfferIDs*/) external returns (int status) {
         if(!(msg.sender == owner || isManager(msg.sender))) {
             emit FunctionStatus(int(Status.AccessDenied));
             return int(Status.AccessDenied);

@@ -14,7 +14,7 @@
 // implied.  See the License for the specific language governing
 // permissions and limitations under the License.
 
-pragma solidity ^0.4.23;
+pragma solidity ^0.5.8;
 pragma experimental ABIEncoderV2;
 
 import "./ERC165.sol";
@@ -23,7 +23,7 @@ import "./MultiManagers.sol";
 contract MultiManagersBaseContract is ERC165, MultiManagers {
 
     enum Status {Successful, AccessDenied, UndefinedID, DeadlinePassed, RequestNotOpen,
-        NotPending, ReqNotDecided, ReqNotClosed, NotTimeForDeletion, AlreadySentOffer, ImproperList}
+        NotPending, ReqNotDecided, ReqNotClosed, NotTimeForDeletion, AlreadySentOffer, ImproperList, DuplicateManager}
 
     address internal owner;
     address[] internal managers;
@@ -81,7 +81,8 @@ contract MultiManagersBaseContract is ERC165, MultiManagers {
 
         for (uint j = 0; j < managers.length; j++) {
             if (managers[j] == managerAddress) {
-                return;
+                emit FunctionStatus(int(Status.DuplicateManager));
+                return int(Status.DuplicateManager);
             }
         }
         managers.push(managerAddress);
@@ -90,7 +91,7 @@ contract MultiManagersBaseContract is ERC165, MultiManagers {
     }
 
     // The owner can get the list of managers.
-    function getManagers() public view returns (int status, address[] managerAddresses) {
+    function getManagers() public view returns (int status, address[] memory managerAddresses) {
         return (int(Status.Successful), managers);
     }
 

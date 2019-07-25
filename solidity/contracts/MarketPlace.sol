@@ -14,22 +14,22 @@
 // implied.  See the License for the specific language governing
 // permissions and limitations under the License.
 
-pragma solidity ^0.4.23;
+pragma solidity ^0.5.8;
 pragma experimental ABIEncoderV2;
 
 interface MarketPlace {
 
     function getMarketInformation() external view returns (int status, address ownerAddress);
 
-    function getOpenRequestIdentifiers() external view returns (int status, uint[]);
+    function getOpenRequestIdentifiers() external view returns (int status, uint[] memory);
 
-    function getClosedRequestIdentifiers() external view returns (int status, uint[]);
+    function getClosedRequestIdentifiers() external view returns (int status, uint[] memory);
 
     function getRequest(uint requestIdentifier) external view returns (int status, uint deadline, uint stage);
 
-    function getRequestOfferIDs(uint requestIdentifier) external view returns (int status, uint[] offerIDs);
+    function getRequestOfferIDs(uint requestIdentifier) external view returns (int status, uint[] memory offerIDs);
 
-    function isOfferDefined(uint offerIdentifier) external view returns (int status, bool) ;
+    function isOfferDefined(uint offerIdentifier) external view returns (int status, bool);
 
     function getOffer(uint offerIdentifier) external view returns (int status, uint requestID, address offerMaker, uint stage);
 
@@ -39,13 +39,13 @@ interface MarketPlace {
 
     function isRequestDecided(uint requestIdentifier) external view returns (int status, bool);
 
-    function getRequestDecision(uint requestIdentifier) external view returns (int status, uint[] acceptedOfferIDs);
+    function getRequestDecision(uint requestIdentifier) external view returns (int status, uint[] memory acceptedOfferIDs);
 
     function submitRequest(uint deadline) external returns (int status, uint requestID);
 
     function closeRequest(uint requestIdentifier) external returns (int status);
 
-    function decideRequest(uint requestIdentifier, uint[] acceptedOfferIDs) external returns (int status);
+    function decideRequest(uint requestIdentifier, uint[] calldata acceptedOfferIDs) external returns (int status);
 
     function deleteRequest(uint requestIdentifier) external returns (int status);
 
