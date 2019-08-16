@@ -76,8 +76,7 @@ ethereum node (Ganache, for example), then:
 # Testing
 
 The provided makefile has simple targets to test all of the
-parts. Remember that you will need ganache or other Ethereum network
-environment to run Truffle tests (in `solidity` directory).
+parts. 
 
 	$ make all
 	$ make test
