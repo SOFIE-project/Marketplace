@@ -71,7 +71,7 @@ contract FlowerMarketPlace is MarketPlace, MultiManagersBaseContract {
 
     // Get the information of market, for example the owner, etc.
     function getMarketInformation() public view returns (int status, address ownerAddress) {
-        return (int(Status.Successful), owner);
+        return (int(Status.Successful), owner());
     }
 
     // Get the Identifiers of the requests which are not closed yet.
@@ -243,11 +243,11 @@ contract FlowerMarketPlace is MarketPlace, MultiManagersBaseContract {
     // can add a new request. It will have a unique identifier and others will be able to make offers for it
     // (only owner or managers can access this function).
     function submitRequest(uint deadline) public returns (int status, uint requestID) {
-        if(!(msg.sender == owner || isManager(msg.sender))) {
+        if(!(msg.sender == owner() || isManager(msg.sender))) {
             emit FunctionStatus(int(Status.AccessDenied));
             return (int(Status.AccessDenied), 0);
         }
-        require(msg.sender == owner || isManager(msg.sender));
+        require(msg.sender == owner() || isManager(msg.sender));
 
         Request memory request;
         request.deadline = deadline;
@@ -265,7 +265,7 @@ contract FlowerMarketPlace is MarketPlace, MultiManagersBaseContract {
     // By specifiying the type of the flowers, quantity of them, owner and managers
     // can complete a request (only owner or managers can access this function).
     function submitRequestExtra(uint requestID, uint quantity, FlowerType flowerType) public returns (int status, uint reqID) {
-        if(!(msg.sender == owner || isManager(msg.sender))) {
+        if(!(msg.sender == owner() || isManager(msg.sender))) {
             emit FunctionStatus(int(Status.AccessDenied));
             return (int(Status.AccessDenied), 0);
         }
@@ -277,7 +277,7 @@ contract FlowerMarketPlace is MarketPlace, MultiManagersBaseContract {
             emit FunctionStatus(int(Status.NotPending));
             return (int(Status.NotPending), 0);
         }
-        require(msg.sender == owner || isManager(msg.sender));
+        require(msg.sender == owner() || isManager(msg.sender));
         require(requests[requestID].isDefined && requests[requestID].reqStage == Stage.Pending);
 
         requests[requestID].quantity = quantity;
@@ -298,11 +298,11 @@ contract FlowerMarketPlace is MarketPlace, MultiManagersBaseContract {
     // In this implementation, this is completely apart from request's deadline. This can be modified based on the
     // specifications of the market we have (only owner or managers can access this function).
     function closeRequest(uint requestIdentifier) public returns (int status) {
-        if(!(msg.sender == owner || isManager(msg.sender))) {
+        if(!(msg.sender == owner() || isManager(msg.sender))) {
             emit FunctionStatus(int(Status.AccessDenied));
             return int(Status.AccessDenied);
         }
-        require(msg.sender == owner || isManager(msg.sender));
+        require(msg.sender == owner() || isManager(msg.sender));
 
         requests[requestIdentifier].reqStage = Stage.Closed;
         requests[requestIdentifier].closingBlock = block.number;
@@ -324,11 +324,11 @@ contract FlowerMarketPlace is MarketPlace, MultiManagersBaseContract {
     // and it can be very complicated. Even in some cases, the decision must be made in the backend.
     // (only owner or managers can access this function).
     function decideRequest(uint requestIdentifier, uint[] calldata /*acceptedOfferIDs*/) external returns (int status) {
-        if(!(msg.sender == owner || isManager(msg.sender))) {
+        if(!(msg.sender == owner() || isManager(msg.sender))) {
             emit FunctionStatus(int(Status.AccessDenied));
             return int(Status.AccessDenied);
         }
-        require(msg.sender == owner || isManager(msg.sender));
+        require(msg.sender == owner() || isManager(msg.sender));
 
         closeRequest(requestIdentifier);
         uint maxOffer = 0;
@@ -347,7 +347,7 @@ contract FlowerMarketPlace is MarketPlace, MultiManagersBaseContract {
     }
 
     function deleteRequest(uint requestIdentifier) public returns (int status) {
-        if(!(msg.sender == owner || isManager(msg.sender))) {
+        if(!(msg.sender == owner() || isManager(msg.sender))) {
             emit FunctionStatus(int(Status.AccessDenied));
             return int(Status.AccessDenied);
         }
@@ -359,7 +359,7 @@ contract FlowerMarketPlace is MarketPlace, MultiManagersBaseContract {
             emit FunctionStatus(int(Status.NotTimeForDeletion));
             return int(Status.NotTimeForDeletion);
         }
-        require(msg.sender == owner || isManager(msg.sender));
+        require(msg.sender == owner() || isManager(msg.sender));
         require(requests[requestIdentifier].reqStage == Stage.Closed
             && requests[requestIdentifier].closingBlock + waitBeforeDeleteBlocks <= block.number);
 
