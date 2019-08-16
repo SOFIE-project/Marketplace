@@ -1,0 +1,14 @@
+{
+  "name": "sofie-offer-marketplace",
+  "version": "0.1.0",
+  "description": "Template implementation of the SOFIE project's Offer Marketplace business platform",
+  "directories": {
+    "test": "test"
+  },
+  "repository": "https://github.com/SOFIE-project/offer-marketplace",
+  "author": "SOFIE Project",
+  "license": "APL 2.0",
+  "devDependencies": {
+    "truffle": "^5.0.29"
+  }
+}
