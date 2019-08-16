@@ -17,27 +17,25 @@
 pragma solidity ^0.5.8;
 pragma experimental ABIEncoderV2;
 
-import "./ERC165.sol";
+import "@openzeppelin/contracts/introspection/IERC165.sol";
+import "@openzeppelin/contracts/ownership/Ownable.sol"; 
+import "@openzeppelin/contracts/access/Roles.sol";
 import "./MultiManagers.sol";
 
-contract MultiManagersBaseContract is ERC165, MultiManagers {
+
+contract MultiManagersBaseContract is IERC165, MultiManagers, Ownable {
 
     enum Status {Successful, AccessDenied, UndefinedID, DeadlinePassed, RequestNotOpen,
         NotPending, ReqNotDecided, ReqNotClosed, NotTimeForDeletion, AlreadySentOffer, ImproperList, DuplicateManager}
 
-    address internal owner;
-    address[] internal managers;
+    using Roles for Roles.Role;
+    Roles.Role internal managers;
 
     event FunctionStatus(int status);
 
     // Check if the given address is defined as a manager.
     function isManager(address addr) internal view returns (bool) {
-        for (uint j = 0; j < managers.length; j++) {
-            if (managers[j] == addr) {
-                return true;
-            }
-        }
-        return false;
+        return managers.has(addr);
     }
 
     // Only let the owner to access a function
@@ -52,78 +50,56 @@ contract MultiManagersBaseContract is ERC165, MultiManagers {
         _;
     }*/
 
-    constructor(address creator) public {
-        managers.push(creator);
-        owner = creator;
+    constructor(address creator) public Ownable() {
+        managers.add(creator);
     }
 
     // The owner can transfer the rights of being owner to another address (only owner can access this function).
-    function transferOwnership(address addr) public returns (int status) {
-        if(msg.sender != owner) {
+    function changeOwner(address addr) public returns (int status) {
+        if(msg.sender != owner()) {
             emit FunctionStatus(int(Status.AccessDenied));
             return int(Status.AccessDenied);
         }
-        require(msg.sender == owner);
-
+        require(msg.sender == owner());
         addManager(addr);
-        owner = addr;
+        transferOwnership(addr);
         emit FunctionStatus(int(Status.Successful));
         return int(Status.Successful);
     }
 
     // The owner can add a new address to the list of managers (only owner can access this function).
     function addManager(address managerAddress) public returns (int status) {
-        if(msg.sender != owner) {
+        if(msg.sender != owner()) {
             emit FunctionStatus(int(Status.AccessDenied));
             return int(Status.AccessDenied);
         }
-        require(msg.sender == owner);
-
-        for (uint j = 0; j < managers.length; j++) {
-            if (managers[j] == managerAddress) {
-                emit FunctionStatus(int(Status.DuplicateManager));
-                return int(Status.DuplicateManager);
-            }
+        if (isManager(managerAddress)) {
+            emit FunctionStatus(int(Status.DuplicateManager));
+            return int(Status.DuplicateManager);
         }
-        managers.push(managerAddress);
+        require(msg.sender == owner());
+        managers.add(managerAddress);
         emit FunctionStatus(int(Status.Successful));
         return int(Status.Successful);
     }
 
-    // The owner can get the list of managers.
-    function getManagers() public view returns (int status, address[] memory managerAddresses) {
-        return (int(Status.Successful), managers);
-    }
-
     // The owner can revoke the certification of a current manager (only owner can access this function).
     function revokeManagerCert(address managerAddress) public returns (int status) {
-        if(msg.sender != owner) {
+        if(msg.sender != owner()) {
             emit FunctionStatus(int(Status.AccessDenied));
             return int(Status.AccessDenied);
         }
-        require(msg.sender == owner);
-
-        for (uint j = 0; j < managers.length; j++) {
-            if (managers[j] == managerAddress) {
-                for (uint i = j; i < managers.length - 1; i++){
-                    managers[i] = managers[i+1];
-                }
-                delete managers[managers.length-1];
-                managers.length--;
-                emit FunctionStatus(int(Status.Successful));
-                return int(Status.Successful);
-            }
-        }
+        require(msg.sender == owner());
+        managers.remove(managerAddress);
+        return int(Status.Successful);
     }
 
     // ERC165
     function supportsInterface(bytes4 interfaceID) public view returns (bool) {
         return
           interfaceID == this.supportsInterface.selector || // ERC165
-          interfaceID == (this.transferOwnership.selector
+          interfaceID == (this.changeOwner.selector
                          ^ this.addManager.selector
-                         ^ this.getManagers.selector
                          ^ this.revokeManagerCert.selector); // MultiManagers
     }
-
 }

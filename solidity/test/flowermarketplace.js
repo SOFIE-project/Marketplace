@@ -42,29 +42,18 @@ contract('FlowerMarketPlace', function(accounts) {
         }).then(function() {
             market.addManager(accounts[1]);
         }).then(function() {
-            return market.getManagers();
-        }).then(function(managers) {
-            assert.equal(managers[0].toNumber(), 0, "status wasn't successful");
-            assert.equal(managers[1][0], accounts[0], "managers[0] wasn't accuonts[0]");
-            assert.equal(managers[1][1], accounts[2], "managers[1] wasn't accuonts[2]");
-            assert.equal(managers[1][2], accounts[1], "managers[2] wasn't accuonts[1]");
-        }).then(function() {
-            return market.transferOwnership(accounts[3]);
+            return market.changeOwner(accounts[3]);
         }).then(function(tx) {
             assert.equal(tx.logs[0].args.status.toNumber(), 0, "status wasn't successful");
             return market.getMarketInformation();
         }).then(function(ownerAdd1) {
             assert.equal(ownerAdd1[1], accounts[3], "acconts[3] wasn't the owner");
         }).then(function() {
-            market.transferOwnership(accounts[0], {from: accounts[3]});
+            market.changeOwner(accounts[0], {from: accounts[3]});
         }).then(function() {
             return market.getMarketInformation();
         }).then(function(ownerAdd2) {
             assert.equal(ownerAdd2[1], accounts[0], "acconts[0] wasn't the owner");
-        }).then(function() {
-            return market.getManagers();
-        }).then(function(managers) {
-            assert.equal(managers[1][3], accounts[3], "managers[3] wasn't accuonts[3]");
             done();
         });
     });

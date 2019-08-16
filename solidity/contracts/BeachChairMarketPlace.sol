@@ -71,7 +71,7 @@ contract BeachChairMarketPlace is MarketPlace, MultiManagersBaseContract {
 
     // Get the information of market, for example the owner, etc.
     function getMarketInformation() public view returns (int status, address ownerAddress) {
-        return (int(Status.Successful), owner);
+        return (int(Status.Successful), owner());
     }
 
     // Get the Identifiers of the requests which are not closed yet.
@@ -243,11 +243,11 @@ contract BeachChairMarketPlace is MarketPlace, MultiManagersBaseContract {
     // owner and managers can add a new request. It will have a unique identifier and others will be able to make
     // offers for it (only owner or managers can access this function).
     function submitRequest(uint deadline) public returns (int status, uint requestID) {
-        if(!(msg.sender == owner || isManager(msg.sender))) {
+        if(!(msg.sender == owner() || isManager(msg.sender))) {
             emit FunctionStatus(int(Status.AccessDenied));
             return (int(Status.AccessDenied), 0);
         }
-        require(msg.sender == owner || isManager(msg.sender));
+        require(msg.sender == owner() || isManager(msg.sender));
 
         Request memory request;
         request.deadline = deadline;
@@ -265,7 +265,7 @@ contract BeachChairMarketPlace is MarketPlace, MultiManagersBaseContract {
     // By adding the quantity of the beach chairs needed, and the intended rental date,
     // owner and managers can complete a request (only owner or managers can access this function).
     function submitRequestExtra(uint requestID, uint quantity, uint date) public returns (int status, uint reqID) {
-        if(!(msg.sender == owner || isManager(msg.sender))) {
+        if(!(msg.sender == owner() || isManager(msg.sender))) {
             emit FunctionStatus(int(Status.AccessDenied));
             return (int(Status.AccessDenied), 0);
         }
@@ -277,7 +277,7 @@ contract BeachChairMarketPlace is MarketPlace, MultiManagersBaseContract {
             emit FunctionStatus(int(Status.NotPending));
             return (int(Status.NotPending), 0);
         }
-        require(msg.sender == owner || isManager(msg.sender));
+        require(msg.sender == owner() || isManager(msg.sender));
         require(requests[requestID].isDefined && requests[requestID].reqStage == Stage.Pending);
 
         requests[requestID].quantity = quantity;
@@ -298,11 +298,11 @@ contract BeachChairMarketPlace is MarketPlace, MultiManagersBaseContract {
     // In this implementation, this is completely apart from request's deadline. This can be modified based on the
     // specifications of the market we have (only owner or managers can access this function).
     function closeRequest(uint requestIdentifier) public returns (int status) {
-        if(!(msg.sender == owner || isManager(msg.sender))) {
+        if(!(msg.sender == owner() || isManager(msg.sender))) {
             emit FunctionStatus(int(Status.AccessDenied));
             return int(Status.AccessDenied);
         }
-        require(msg.sender == owner || isManager(msg.sender));
+        require(msg.sender == owner() || isManager(msg.sender));
 
         requests[requestIdentifier].reqStage = Stage.Closed;
         requests[requestIdentifier].closingBlock = block.number;
@@ -339,7 +339,7 @@ contract BeachChairMarketPlace is MarketPlace, MultiManagersBaseContract {
     // of offers they want to accept. Some validity checks will be performed on the array of accepted offers,
     // before finalizing the decision (only owner or managers can access this function).
     function decideRequest(uint requestIdentifier, uint[] calldata acceptedOfferIDs) external returns (int status) {
-        if(!(msg.sender == owner || isManager(msg.sender))) {
+        if(!(msg.sender == owner() || isManager(msg.sender))) {
             emit FunctionStatus(int(Status.AccessDenied));
             return int(Status.AccessDenied);
         }
@@ -348,7 +348,7 @@ contract BeachChairMarketPlace is MarketPlace, MultiManagersBaseContract {
             emit FunctionStatus(int(Status.ImproperList));
             return int(Status.ImproperList);
         }
-        require(msg.sender == owner || isManager(msg.sender));
+        require(msg.sender == owner() || isManager(msg.sender));
         require(integrity);
 
         closeRequest(requestIdentifier);
@@ -359,7 +359,7 @@ contract BeachChairMarketPlace is MarketPlace, MultiManagersBaseContract {
     }
 
     function deleteRequest(uint requestIdentifier) public returns (int status) {
-        if(!(msg.sender == owner || isManager(msg.sender))) {
+        if(!(msg.sender == owner() || isManager(msg.sender))) {
             emit FunctionStatus(int(Status.AccessDenied));
             return int(Status.AccessDenied);
         }
@@ -371,7 +371,7 @@ contract BeachChairMarketPlace is MarketPlace, MultiManagersBaseContract {
             emit FunctionStatus(int(Status.NotTimeForDeletion));
             return int(Status.NotTimeForDeletion);
         }
-        require(msg.sender == owner || isManager(msg.sender));
+        require(msg.sender == owner() || isManager(msg.sender));
         require(requests[requestIdentifier].reqStage == Stage.Closed
             && requests[requestIdentifier].closingBlock + waitBeforeDeleteBlocks <= block.number);
 
