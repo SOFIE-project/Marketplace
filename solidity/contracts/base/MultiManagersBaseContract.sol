@@ -17,14 +17,13 @@
 pragma solidity ^0.5.8;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts/introspection/IERC165.sol";
+import "@openzeppelin/contracts/introspection/ERC165.sol";
 import "@openzeppelin/contracts/ownership/Ownable.sol"; 
 import "@openzeppelin/contracts/access/Roles.sol";
-import "./MultiManagers.sol";
+import "../interfaces/MultiManagers.sol";
 
 
-contract MultiManagersBaseContract is IERC165, MultiManagers, Ownable {
-
+contract MultiManagersBaseContract is MultiManagers, Ownable, ERC165 {
     enum Status {Successful, AccessDenied, UndefinedID, DeadlinePassed, RequestNotOpen,
         NotPending, ReqNotDecided, ReqNotClosed, NotTimeForDeletion, AlreadySentOffer, ImproperList, DuplicateManager}
 
@@ -49,9 +48,11 @@ contract MultiManagersBaseContract is IERC165, MultiManagers, Ownable {
         require(msg.sender == owner || isManager(msg.sender));
         _;
     }*/
-
-    constructor(address creator) public Ownable() {
+    constructor(address creator) public Ownable() ERC165() {
         managers.add(creator);
+        _registerInterface(this.changeOwner.selector
+                            ^ this.addManager.selector
+                            ^ this.revokeManagerCert.selector);
     }
 
     // The owner can transfer the rights of being owner to another address (only owner can access this function).
@@ -92,14 +93,5 @@ contract MultiManagersBaseContract is IERC165, MultiManagers, Ownable {
         require(msg.sender == owner());
         managers.remove(managerAddress);
         return int(Status.Successful);
-    }
-
-    // ERC165
-    function supportsInterface(bytes4 interfaceID) public view returns (bool) {
-        return
-          interfaceID == this.supportsInterface.selector || // ERC165
-          interfaceID == (this.changeOwner.selector
-                         ^ this.addManager.selector
-                         ^ this.revokeManagerCert.selector); // MultiManagers
     }
 }

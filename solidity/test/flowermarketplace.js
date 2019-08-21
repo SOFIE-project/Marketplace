@@ -68,19 +68,21 @@ contract('FlowerMarketPlace', function(accounts) {
             assert.equal(tx1.logs[0].args.status.toNumber(), 0, "status wasn't successful");
             assert.equal(tx1.logs[1].args.requestID.toNumber(), 1, "requestID wasn't 1");
             assert.equal(tx1.logs[1].args.deadline.toNumber(), 2000000000, "quantity wasn't 2000000000");
-            return market.submitRequestExtra(tx1.logs[1].args.requestID, 20, 3);
+            return market.submitRequestArrayExtra(tx1.logs[1].args.requestID, [20, 3]);
         }).then(function(txx) {
             assert.equal(txx.logs[0].args.status.toNumber(), 0, "status wasn't successful");
             assert.equal(txx.logs[1].args.requestID.toNumber(), 1, "requestID wasn't 1");
-            assert.equal(txx.logs[1].args.quantity.toNumber(), 20, "quantity wasn't 20");
-            assert.equal(txx.logs[1].args.flowerType.toNumber(), 3, "flowerType wasn't 3 (White)");
+            return market.getRequestExtra(txx.logs[1].args.requestID.toNumber())
+        }).then(function(reqExtraInfo) {
+            assert.equal(reqExtraInfo[1].toNumber(), 20, "quantity wasn't 20");
+            assert.equal(reqExtraInfo[2].toNumber(), 3, "flowerType wasn't 3 (White)");
             return market.submitRequest(2000000000);
         }).then(function(tx2) {
-            market.submitRequestExtra(tx2.logs[1].args.requestID, 45, 0);
+            market.submitRequestArrayExtra(tx2.logs[1].args.requestID, [45, 0]);
         }).then(function() {
             return market.submitRequest(2000000000);
         }).then(function(tx3) {
-            market.submitRequestExtra(tx3.logs[1].args.requestID, 100, 2);
+            market.submitRequestArrayExtra(tx3.logs[1].args.requestID, [100, 2]);
         }).then(function() {
             return market.closeRequest(2);
         }).then(function(txx1) {
@@ -119,22 +121,24 @@ contract('FlowerMarketPlace', function(accounts) {
             assert.equal(tx1.logs[1].args.offerID.toNumber(), 1, "offerID wasn't 1");
             assert.equal(tx1.logs[1].args.requestID.toNumber(), 3, "requestID wasn't 3");
             assert.equal(tx1.logs[1].args.offerMaker, accounts[6], "offerMaker wasn't accounts[6]");
-            return market.submitOfferExtra(tx1.logs[1].args.offerID, 100, {from: accounts[6]});
+            return market.submitOfferArrayExtra(tx1.logs[1].args.offerID, [100], {from: accounts[6]});
         }).then(function(txx) {
             assert.equal(txx.logs[0].args.status.toNumber(), 0, "status wasn't successful");
             assert.equal(txx.logs[1].args.offerID.toNumber(), 1, "offerID wasn't 1");
-            assert.equal(txx.logs[1].args.price.toNumber(), 100, "price wasn't 100");
+            return market.getOfferExtra(txx.logs[1].args.offerID.toNumber());
+        }).then(function(offerExtraInfo) {
+            assert.equal(offerExtraInfo[1].toNumber(), 100, "price wasn't 100");
             return market.submitOffer(3, {from: accounts[8]});
         }).then(function(tx2) {
-            market.submitOfferExtra(tx2.logs[1].args.offerID, 13, {from: accounts[8]});
+            market.submitOfferArrayExtra(tx2.logs[1].args.offerID, [13], {from: accounts[8]});
         }).then(function() {
             return market.submitOffer(3, {from: accounts[2]});
         }).then(function(tx3) {
-            market.submitOfferExtra(tx3.logs[1].args.offerID, 666, {from: accounts[2]});
+            market.submitOfferArrayExtra(tx3.logs[1].args.offerID, [666], {from: accounts[2]});
         }).then(function() {
             return market.submitOffer(3);
         }).then(function(tx4) {
-            market.submitOfferExtra(tx4.logs[1].args.offerID, 593);
+            market.submitOfferArrayExtra(tx4.logs[1].args.offerID, [593]);
         }).then(function() {
             return market.isOfferDefined(2);
         }).then(function(isOdef1) {
@@ -223,10 +227,10 @@ contract('FlowerMarketPlace', function(accounts) {
             assert.equal(res6.logs[0].args.status.toNumber(), 4, "status should've been request not open");
             return market.submitOffer(1);
         }).then(function(res7) {
-            return market.submitOfferExtra(res7.logs[1].args.offerID.toNumber(), 252);
+            return market.submitOfferArrayExtra(res7.logs[1].args.offerID.toNumber(), [252]);
         }).then(function(res8) {
             assert.equal(res8.logs[0].args.status.toNumber(), 0, "status wasn't successful");
-            return market.submitOfferExtra(res8.logs[1].args.offerID.toNumber(), 254);
+            return market.submitOfferArrayExtra(res8.logs[1].args.offerID.toNumber(), [254]);
         }).then(function(res9) {
             assert.equal(res9.logs[0].args.status.toNumber(), 5, "status should've been not pending");
             return market.getRequestDecision(1);
@@ -238,5 +242,127 @@ contract('FlowerMarketPlace', function(accounts) {
             done();
         });
     });
+
+    it("testing ERC165 interface support", function(done) {
+        var market;
+        FlowerMarketPlace.deployed().then(function(instance) {
+            market = instance;
+        }).then(function() {
+            let erc165Selector = web3.eth.abi.encodeFunctionSignature('supportsInterface(bytes4)');
+            return market.supportsInterface(web3.utils.hexToBytes(erc165Selector));
+        }).then(function(res) {
+            assert.equal(res, true, "contract does not support ERC165");
+            done()
+        })
+    })
+
+
+    it("testing MultiManager interface support", function(done) {
+        var market;
+        FlowerMarketPlace.deployed().then(function(instance) {
+            market = instance;
+        }).then(function() {
+            let interfaceFunctions = [
+                'changeOwner(address)',
+                'addManager(address)',
+                'revokeManagerCert(address)'
+            ]
+            
+            let interfaceId =  interfaceFunctions.
+                                    map(web3.eth.abi.encodeFunctionSignature).
+                                    map((x) => parseInt(x, 16)).
+                                    reduce((x, y) => x ^ y);
+            
+            interfaceId = interfaceId > 0 ? interfaceId :  0xFFFFFFFF + interfaceId + 1;
+            interfaceId = '0x' + interfaceId.toString(16);
+            return market.supportsInterface(web3.utils.hexToBytes(interfaceId));
+        }).then(function(res) {
+            assert.equal(res, true, "contract does not support MultiManager interface");
+            done();
+        })
+    })
+
+    it('testing MarketPlace interface support', function(done) {
+        var market;
+        FlowerMarketPlace.deployed().then(function(instance) {
+            market = instance;
+        }).then(function() {
+            let interfaceFunctions = [
+                'getMarketInformation()',
+                'getOpenRequestIdentifiers()',
+                'getClosedRequestIdentifiers()',
+                'getRequest(uint256)',
+                'getRequestOfferIDs(uint256)',
+                'isOfferDefined(uint256)',
+                'getOffer(uint256)',
+                'submitOffer(uint256)',
+                'isRequestDefined(uint256)',
+                'isRequestDecided(uint256)',
+                'getRequestDecision(uint256)'
+            ]
+            
+            let interfaceId =  interfaceFunctions.
+                                    map(web3.eth.abi.encodeFunctionSignature).
+                                    map((x) => parseInt(x, 16)).
+                                    reduce((x, y) => x ^ y);
+            
+            interfaceId = interfaceId > 0 ? interfaceId :  0xFFFFFFFF + interfaceId + 1;
+            interfaceId = '0x' + interfaceId.toString(16);
+            return market.supportsInterface(web3.utils.hexToBytes(interfaceId));
+        }).then(function(res) {
+            assert.equal(res, true, "contract does not support MarketPlace interface");
+            done();
+        })
+    })
+
+    it("testing ManageableMarketPlace interface support", function(done) {
+        var market;
+        FlowerMarketPlace.deployed().then(function(instance) {
+            market = instance;
+        }).then(function() {
+            let interfaceFunctions = [
+                'submitRequest(uint256)',
+                'closeRequest(uint256)',
+                'decideRequest(uint256,uint256[])',
+                'deleteRequest(uint256)'
+            ]
+            
+            let interfaceId =  interfaceFunctions.
+                                    map(web3.eth.abi.encodeFunctionSignature).
+                                    map((x) => parseInt(x, 16)).
+                                    reduce((x, y) => x ^ y);
+            
+            interfaceId = interfaceId > 0 ? interfaceId :  0xFFFFFFFF + interfaceId + 1;
+            interfaceId = '0x' + interfaceId.toString(16);
+            return market.supportsInterface(web3.utils.hexToBytes(interfaceId));
+        }).then(function(res) {
+            assert.equal(res, true, "contract does not support ManageableMarketPlace interface");
+            done();
+        })
+    })
+
+    it("testing ArrayExtraData interface support", function(done) {
+        var market;
+        FlowerMarketPlace.deployed().then(function(instance) {
+            market = instance;
+        }).then(function() {
+            let interfaceFunctions = [
+                'submitOfferArrayExtra(uint256,uint256[])',
+                'submitRequestArrayExtra(uint256,uint256[])'
+            ]
+            
+            let interfaceId =  interfaceFunctions.
+                                    map(web3.eth.abi.encodeFunctionSignature).
+                                    map((x) => parseInt(x, 16)).
+                                    reduce((x, y) => x ^ y);
+            
+            interfaceId = interfaceId > 0 ? interfaceId :  0xFFFFFFFF + interfaceId + 1;
+            interfaceId = '0x' + interfaceId.toString(16);
+            return market.supportsInterface(web3.utils.hexToBytes(interfaceId));
+        }).then(function(res) {
+            assert.equal(res, true, "contract does not support ArrayExtraData interface");
+            done();
+        })
+    })
 
 });
