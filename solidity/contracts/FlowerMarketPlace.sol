@@ -17,10 +17,12 @@
 pragma solidity ^0.5.8;
 pragma experimental ABIEncoderV2;
 
-import "./MarketPlace.sol";
-import "./MultiManagersBaseContract.sol";
+import "./interfaces/MarketPlace.sol";
+import "./interfaces/ManageableMarketPlace.sol";
+import "./interfaces/ArrayExtraData.sol";
+import "./base/MultiManagersBaseContract.sol";
 
-contract FlowerMarketPlace is MarketPlace, MultiManagersBaseContract {
+contract FlowerMarketPlace is MarketPlace, MultiManagersBaseContract, ManageableMarketPlace, ArrayExtraData {
 
     enum Stage {Pending, Open, Closed}
 
@@ -59,16 +61,35 @@ contract FlowerMarketPlace is MarketPlace, MultiManagersBaseContract {
     uint[] private closedRequestIDs;
 
     event RequestAdded(uint requestID, uint deadline);
-    event RequestExtraAdded(uint requestID, uint quantity, FlowerType flowerType);
+    event RequestExtraAdded(uint requestID);
     event OfferAdded(uint offerID, uint requestID, address offerMaker);
-    event OfferExtraAdded(uint offerID, uint price);
+    event OfferExtraAdded(uint offerID);
 
     constructor() MultiManagersBaseContract(msg.sender) public {
         reqNum = 1;
         offNum = 1;
         waitBeforeDeleteBlocks = 1;
-    }
+        _registerInterface(this.getMarketInformation.selector
+                            ^ this.getOpenRequestIdentifiers.selector
+                            ^ this.getClosedRequestIdentifiers.selector
+                            ^ this.getRequest.selector
+                            ^ this.getRequestOfferIDs.selector
+                            ^ this.isOfferDefined.selector
+                            ^ this.getOffer.selector
+                            ^ this.submitOffer.selector
+                            ^ this.isRequestDefined.selector
+                            ^ this.isRequestDecided.selector
+                            ^ this.getRequestDecision.selector);
 
+        _registerInterface(this.submitOfferArrayExtra.selector
+                            ^ this.submitRequestArrayExtra.selector);
+
+        _registerInterface(this.submitRequest.selector
+                            ^ this.closeRequest.selector
+                            ^ this.decideRequest.selector
+                            ^ this.deleteRequest.selector);
+    }
+    
     // Get the information of market, for example the owner, etc.
     function getMarketInformation() public view returns (int status, address ownerAddress) {
         return (int(Status.Successful), owner());
@@ -172,7 +193,7 @@ contract FlowerMarketPlace is MarketPlace, MultiManagersBaseContract {
 
     // By sending the proposed price, others can complete and open their offer to buy flowers.
     // (only the initial offer maker can access this function).
-    function submitOfferExtra(uint offerID, uint price) public returns (int status, uint offID) {
+    function submitOfferArrayExtra(uint offerID, uint[] calldata extra) external returns (int status, uint offID) {
         Offer memory offer = offers[offerID];
 
         if(!offer.isDefined) {
@@ -195,11 +216,11 @@ contract FlowerMarketPlace is MarketPlace, MultiManagersBaseContract {
             && offer.offerMaker == msg.sender
             && requests[offer.requestID].reqStage == Stage.Open);
 
-        offer.price = price;
+        offer.price = extra[0];
         offer.offStage = Stage.Open;
         offers[offerID] = offer;
         emit FunctionStatus(int(Status.Successful));
-        emit OfferExtraAdded(offerID, price);
+        emit OfferExtraAdded(offerID);
         return (int(Status.Successful), offerID);
     }
 
@@ -264,7 +285,7 @@ contract FlowerMarketPlace is MarketPlace, MultiManagersBaseContract {
 
     // By specifiying the type of the flowers, quantity of them, owner and managers
     // can complete a request (only owner or managers can access this function).
-    function submitRequestExtra(uint requestID, uint quantity, FlowerType flowerType) public returns (int status, uint reqID) {
+    function submitRequestArrayExtra(uint requestID, uint[] calldata extra) external returns (int status, uint reqID) {
         if(!(msg.sender == owner() || isManager(msg.sender))) {
             emit FunctionStatus(int(Status.AccessDenied));
             return (int(Status.AccessDenied), 0);
@@ -280,11 +301,11 @@ contract FlowerMarketPlace is MarketPlace, MultiManagersBaseContract {
         require(msg.sender == owner() || isManager(msg.sender));
         require(requests[requestID].isDefined && requests[requestID].reqStage == Stage.Pending);
 
-        requests[requestID].quantity = quantity;
-        requests[requestID].flowerType = flowerType;
+        requests[requestID].quantity = extra[0];
+        requests[requestID].flowerType = FlowerType(extra[1]);
         openRequest(requestID);
         emit FunctionStatus(int(Status.Successful));
-        emit RequestExtraAdded(requestID, quantity, flowerType);
+        emit RequestExtraAdded(requestID);
         return (int(Status.Successful), requestID);
     }
 
@@ -381,26 +402,4 @@ contract FlowerMarketPlace is MarketPlace, MultiManagersBaseContract {
             }
         }
     }
-
-    // ERC165
-    function supportsInterface(bytes4 interfaceID) public view returns (bool) {
-        return
-          MultiManagersBaseContract.supportsInterface(interfaceID) ||
-          interfaceID == (this.getMarketInformation.selector
-                         ^ this.getOpenRequestIdentifiers.selector
-                         ^ this.getClosedRequestIdentifiers.selector
-                         ^ this.getRequest.selector
-                         ^ this.getRequestOfferIDs.selector
-                         ^ this.isOfferDefined.selector
-                         ^ this.getOffer.selector
-                         ^ this.submitOffer.selector
-                         ^ this.isRequestDefined.selector
-                         ^ this.isRequestDecided.selector
-                         ^ this.getRequestDecision.selector
-                         ^ this.submitRequest.selector
-                         ^ this.closeRequest.selector
-                         ^ this.decideRequest.selector
-                         ^ this.deleteRequest.selector); // MarketPlace
-    }
-
 }
