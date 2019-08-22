@@ -19,26 +19,26 @@ pragma experimental ABIEncoderV2;
 
 interface MarketPlace {
 
-    function getMarketInformation() external view returns (int status, address ownerAddress);
+    function getMarketInformation() external view returns (uint8 status, address ownerAddress);
 
-    function getOpenRequestIdentifiers() external view returns (int status, uint[] memory);
+    function getOpenRequestIdentifiers() external view returns (uint8 status, uint[] memory);
 
-    function getClosedRequestIdentifiers() external view returns (int status, uint[] memory);
+    function getClosedRequestIdentifiers() external view returns (uint8 status, uint[] memory);
 
-    function getRequest(uint requestIdentifier) external view returns (int status, uint deadline, uint stage);
+    function getRequest(uint requestIdentifier) external view returns (uint8 status, uint deadline, uint stage);
 
-    function getRequestOfferIDs(uint requestIdentifier) external view returns (int status, uint[] memory offerIDs);
+    function getRequestOfferIDs(uint requestIdentifier) external view returns (uint8 status, uint[] memory offerIDs);
 
-    function isOfferDefined(uint offerIdentifier) external view returns (int status, bool);
+    function isOfferDefined(uint offerIdentifier) external view returns (uint8 status, bool);
 
-    function getOffer(uint offerIdentifier) external view returns (int status, uint requestID, address offerMaker, uint stage);
+    function getOffer(uint offerIdentifier) external view returns (uint8 status, uint requestID, address offerMaker, uint stage);
 
-    function submitOffer(uint requestID) external returns (int status, uint offerID);
+    function submitOffer(uint requestID) external returns (uint8 status, uint offerID);
 
-    function isRequestDefined(uint requestIdentifier) external view returns (int status, bool);
+    function isRequestDefined(uint requestIdentifier) external view returns (uint8 status, bool);
 
-    function isRequestDecided(uint requestIdentifier) external view returns (int status, bool);
+    function isRequestDecided(uint requestIdentifier) external view returns (uint8 status, bool);
 
-    function getRequestDecision(uint requestIdentifier) external view returns (int status, uint[] memory acceptedOfferIDs);
+    function getRequestDecision(uint requestIdentifier) external view returns (uint8 status, uint[] memory acceptedOfferIDs);
 
 }

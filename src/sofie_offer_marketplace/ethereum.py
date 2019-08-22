@@ -32,6 +32,7 @@ class Status(Enum):
     NotTimeForDeletion = 8
     AlreadySentOffer = 9
     ImproperList = 10
+    DuplicateManager = 11
 
 
 class Web3Contract(Contract):

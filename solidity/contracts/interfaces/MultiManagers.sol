@@ -19,9 +19,9 @@ pragma experimental ABIEncoderV2;
 
 interface MultiManagers {
 
-    function changeOwner(address addr) external returns (int status);
+    function changeOwner(address addr) external returns (uint8 status);
 
-    function addManager(address managerAddress) external returns (int status);
+    function addManager(address managerAddress) external returns (uint8 status);
 
-    function revokeManagerCert(address managerAddress) external returns (int status);
+    function revokeManagerCert(address managerAddress) external returns (uint8 status);
 }
