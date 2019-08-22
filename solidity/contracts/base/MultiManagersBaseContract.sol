@@ -21,16 +21,11 @@ import "@openzeppelin/contracts/introspection/ERC165.sol";
 import "@openzeppelin/contracts/ownership/Ownable.sol"; 
 import "@openzeppelin/contracts/access/Roles.sol";
 import "../interfaces/MultiManagers.sol";
+import "../StatusCodes.sol";
 
-
-contract MultiManagersBaseContract is MultiManagers, Ownable, ERC165 {
-    enum Status {Successful, AccessDenied, UndefinedID, DeadlinePassed, RequestNotOpen,
-        NotPending, ReqNotDecided, ReqNotClosed, NotTimeForDeletion, AlreadySentOffer, ImproperList, DuplicateManager}
-
+contract MultiManagersBaseContract is MultiManagers, Ownable, ERC165, StatusCodes {
     using Roles for Roles.Role;
     Roles.Role internal managers;
-
-    event FunctionStatus(int status);
 
     // Check if the given address is defined as a manager.
     function isManager(address addr) internal view returns (bool) {
@@ -56,42 +51,42 @@ contract MultiManagersBaseContract is MultiManagers, Ownable, ERC165 {
     }
 
     // The owner can transfer the rights of being owner to another address (only owner can access this function).
-    function changeOwner(address addr) public returns (int status) {
+    function changeOwner(address addr) public returns (uint8 status) {
         if(msg.sender != owner()) {
-            emit FunctionStatus(int(Status.AccessDenied));
-            return int(Status.AccessDenied);
+            emit FunctionStatus(AccessDenied);
+            return AccessDenied;
         }
         require(msg.sender == owner());
         addManager(addr);
         transferOwnership(addr);
-        emit FunctionStatus(int(Status.Successful));
-        return int(Status.Successful);
+        emit FunctionStatus(Successful);
+        return Successful;
     }
 
     // The owner can add a new address to the list of managers (only owner can access this function).
-    function addManager(address managerAddress) public returns (int status) {
+    function addManager(address managerAddress) public returns (uint8 status) {
         if(msg.sender != owner()) {
-            emit FunctionStatus(int(Status.AccessDenied));
-            return int(Status.AccessDenied);
+            emit FunctionStatus(AccessDenied);
+            return AccessDenied;
         }
         if (isManager(managerAddress)) {
-            emit FunctionStatus(int(Status.DuplicateManager));
-            return int(Status.DuplicateManager);
+            emit FunctionStatus(DuplicateManager);
+            return DuplicateManager;
         }
         require(msg.sender == owner());
         managers.add(managerAddress);
-        emit FunctionStatus(int(Status.Successful));
-        return int(Status.Successful);
+        emit FunctionStatus(Successful);
+        return Successful;
     }
 
     // The owner can revoke the certification of a current manager (only owner can access this function).
-    function revokeManagerCert(address managerAddress) public returns (int status) {
+    function revokeManagerCert(address managerAddress) public returns (uint8 status) {
         if(msg.sender != owner()) {
-            emit FunctionStatus(int(Status.AccessDenied));
-            return int(Status.AccessDenied);
+            emit FunctionStatus(AccessDenied);
+            return AccessDenied;
         }
         require(msg.sender == owner());
         managers.remove(managerAddress);
-        return int(Status.Successful);
+        return Successful;
     }
 }
