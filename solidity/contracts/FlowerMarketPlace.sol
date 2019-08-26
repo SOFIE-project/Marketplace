@@ -402,4 +402,10 @@ contract FlowerMarketPlace is MarketPlace, MultiManagersBaseContract, Manageable
             }
         }
     }
+
+    // Returns the type of marketplace.
+    function getType() external view returns (uint8 status, string memory) {
+        return (Successful, "eu.sofie-iot.offer-marketplace-demo.flower");
+    }
+
 }

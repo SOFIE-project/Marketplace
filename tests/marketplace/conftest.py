@@ -12,5 +12,5 @@ def contract():
 @pytest.fixture
 def marketplace(contract):
     return om.Marketplace(contract=contract,
-                          request_class=MockRequest,
-                          offer_class=MockOffer)
+                          fallback_request_class=MockRequest,
+                          fallback_offer_class=MockOffer)

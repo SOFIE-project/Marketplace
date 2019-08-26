@@ -415,4 +415,10 @@ contract BeachChairMarketPlace is MarketPlace, MultiManagersBaseContract, ArrayE
             }
         }
     }
+
+    // Returns the type of marketplace.
+    function getType() external view returns (uint8 status, string memory) {
+        return (Successful, "eu.sofie-iot.offer-marketplace-demo.beach-chair");
+    }
+
 }

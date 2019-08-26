@@ -53,9 +53,10 @@ class MockContract(om.Contract):
         self.counter += 1
         return self.counter
 
-    def __init__(self, requests=[], offers=[]) -> None:
+    def __init__(self, requests=[], offers=[], type_name="mocktype") -> None:
         self.requests = list(requests)
         self.offers = list(offers)
+        self.type_name = type_name
         self.counter = 0
 
     def get_request_ids(self) -> List[int]:
@@ -161,3 +162,6 @@ class MockContract(om.Contract):
             return False
         o.price = extra[0]
         return True
+
+    def get_type(self) -> str:
+        return self.type_name

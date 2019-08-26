@@ -260,4 +260,12 @@ contract('BeachChairMarketPlace', function (accounts) {
         let res = await market.supportsInterface(web3.utils.hexToBytes(interfaceId));
         assert.equal(res, true, "contract does not support ArrayExtraData interface");
     });
+
+    it("testing type", async () => {
+        let market = await BeachChairMarketPlace.deployed();
+        let {status, '1': type} = await market.getType();
+        assert.equal(status.toNumber(), 0, "status wasn't successful");
+        assert.equal(type, "eu.sofie-iot.offer-marketplace-demo.beach-chair", "type of marketplace is not correct");
+    });
+
 });

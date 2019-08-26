@@ -44,13 +44,15 @@ class Web3Contract(Contract):
     All methods in this class are synchronous and **can block**
     indefinitely.
     """
+
     def __init__(self,
                  web3,
                  contract=None,
                  contract_address=None,
                  contract_interface=None,
                  contract_file=None):
-        assert sum([v is not None for v in [contract, contract_interface, contract_file]]) == 1, "One and only one of contract, contract_interface and contract_file parameters may be specified"
+        assert sum([v is not None for v in [contract, contract_interface,
+                                            contract_file]]) == 1, "One and only one of contract, contract_interface and contract_file parameters may be specified"
 
         assert contract is not None or contract_address, "contract_address must be specified if contract_file or contract_interface are used"
 
@@ -154,7 +156,7 @@ class Web3Contract(Contract):
 
     def add_request_extra(self, request_id: int, extra: List[Any]) -> bool:
         # FIXME: This is now tied to the flower market specifically
-        tx_hash = self.contract.functions.submitRequestExtra(
+        tx_hash = self.contract.functions.submitRequestArrayExtra(
             request_id,
             *extra).transact({'gas': 1000000})
 
@@ -208,7 +210,7 @@ class Web3Contract(Contract):
 
     def add_offer_extra(self, offer_id: int, extra: List[Any]) -> bool:
         # FIXME: This is now tied to the flower market specifically
-        tx_hash = self.contract.functions.submitOfferExtra(
+        tx_hash = self.contract.functions.submitOfferArrayExtra(
             offer_id,
             *extra).transact({'gas': 1000000})
 
@@ -229,3 +231,6 @@ class Web3Contract(Contract):
 
         return cast(bool, self.status1(
             self.contract.functions.isRequestDecided(request_id).call()))
+
+    def get_type(self) -> str:
+        return self.status1(self.contract.functions.getType().call())

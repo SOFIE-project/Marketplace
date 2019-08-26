@@ -41,4 +41,6 @@ interface MarketPlace {
 
     function getRequestDecision(uint requestIdentifier) external view returns (uint8 status, uint[] memory acceptedOfferIDs);
 
+    function getType() external view returns (uint8 status, string memory);
+
 }

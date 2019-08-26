@@ -4,7 +4,7 @@ from .utils import MockRequest, MockOffer
 
 
 def test_creation(contract):
-    m = om.Marketplace(contract=contract)
+    m = om.Marketplace(contract=contract, fallback_request_class=MockRequest, fallback_offer_class=MockOffer)
     assert m is not None
 
 
@@ -37,6 +37,11 @@ def test_get_requests_nonempty(marketplace, contract):
     assert_equal(marketplace.get_request(1), r1)
     assert_equal(marketplace.get_request(2), r2)
     assert marketplace.get_request(3) is None
+
+
+def test_get_type(marketplace, contract):
+    assert contract.get_type() == 'mocktype'
+    assert marketplace.get_type() == 'mocktype'
 
 
 @pytest.mark.asyncio

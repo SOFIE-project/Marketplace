@@ -14,4 +14,4 @@
 # implied.  See the License for the specific language governing
 # permissions and limitations under the License.
 
-from .core import Marketplace, Request, Offer, Contract
+from .core import Marketplace, Request, Offer, Contract, default_known_types
