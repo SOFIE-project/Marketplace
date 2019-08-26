@@ -7,7 +7,8 @@ from sofie_offer_marketplace.exceptions import \
 
 @pytest.mark.asyncio
 async def test_access_failures():
-    m = om.Marketplace(MockContract(), is_owner=False, is_manager=False)
+    m = om.Marketplace(MockContract(), is_owner=False, is_manager=False, fallback_request_class=MockRequest,
+                       fallback_offer_class=MockOffer)
 
     with pytest.raises(ManagerAccessRequired):
         await m.add_request(MockRequest())
@@ -32,8 +33,8 @@ async def test_access_failures():
 @pytest.mark.asyncio
 async def test_access_manager():
     m = om.Marketplace(MockContract(), is_owner=False, is_manager=True,
-                       request_class=MockRequest,
-                       offer_class=MockOffer)
+                       fallback_request_class=MockRequest,
+                       fallback_offer_class=MockOffer)
 
     request = await m.add_request(MockRequest())
 

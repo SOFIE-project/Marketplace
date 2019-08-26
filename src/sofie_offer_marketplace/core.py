@@ -13,10 +13,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
 # implied.  See the License for the specific language governing
 # permissions and limitations under the License.
-
 from abc import ABCMeta, abstractmethod
-from typing import Any, Dict, List, Optional
-from .exceptions import ManagerAccessRequired, OwnerAccessRequired
+from typing import Any, Dict, List, Optional, Tuple
+
+from .exceptions import ManagerAccessRequired, OwnerAccessRequired, UnknownMarketType
 
 
 class Contract(metaclass=ABCMeta):
@@ -99,6 +99,10 @@ class Contract(metaclass=ABCMeta):
     def add_offer_extra(self, offer_id: int, extra: List[Any]) -> bool:
         """Adds the extra data to the given offer"""
 
+    @abstractmethod
+    def get_type(self) -> str:
+        """Returns the type of marketplace"""
+
 
 class Request(object):
     def __init__(self,
@@ -135,7 +139,6 @@ class Request(object):
                   common: Dict[str, Any],
                   extra: List[Any] = [],
                   init_args: Dict[str, Any] = {}):
-
         return cls(request_id=request_id,
                    deadline=common['deadline'],
                    is_decided=common['is_decided'],
@@ -145,6 +148,12 @@ class Request(object):
                    offers=common['offers'],
                    decided_offers=common['decided_offers'],
                    **init_args)
+
+    @classmethod
+    def from_args(cls,
+                  deadline: int,
+                  args: List[str]):
+        assert False, "Not implemented"
 
 
 class Offer(object):
@@ -172,11 +181,16 @@ class Offer(object):
                   common: Dict[str, Any],
                   extra: List[Any] = [],
                   init_args: Dict[str, Any] = {}):
-
         return cls(offer_id=offer_id,
                    request_id=common['request_id'],
                    author=common['author'],
                    **init_args)
+
+    @classmethod
+    def from_args(cls,
+                  request_id: int,
+                  args: List[str]):
+        assert False, "Not implemented"
 
 
 # FIXME: we cannot really operate on web3 or contract directly, they
@@ -188,19 +202,37 @@ class Offer(object):
 # responsibility of the **caller** to do async stuff if they really
 # need it.
 
+default_known_types: Dict[str, Tuple[Request, Offer]] = {}
+
+
+def register_marshaller(type_name, request_class, offer_class):
+    """registers a marshaller in known_types"""
+    assert type_name not in default_known_types
+    default_known_types[type_name] = (request_class, offer_class)
+
+
 class Marketplace(object):
     def __init__(self,
                  contract: Contract,
                  is_owner: bool = False,
                  is_manager: bool = False,
                  # these are ok with duck typing
-                 request_class=None,
-                 offer_class=None) -> None:
+                 marketplace_type: str = None,
+                 fallback_request_class=None,
+                 fallback_offer_class=None,
+                 known_types=default_known_types
+                 ) -> None:
         self.contract = contract
         self.is_manager = is_manager
         self.is_owner = is_owner
-        self.request_class = request_class
-        self.offer_class = offer_class
+        self.type = marketplace_type or contract.get_type()
+        self.request_class, self.offer_class = known_types.get(
+            self.type,
+            (fallback_request_class, fallback_offer_class))
+
+    def get_type(self):
+        """returns type"""
+        return self.type
 
     def get_requests(self):
         """Returns list of current requests"""
@@ -214,6 +246,8 @@ class Marketplace(object):
 
     def get_request(self, request_id):
         """Returns a specific request"""
+        assert self.request_class, "cannot fetch without a request class"
+
         data = self.contract.get_request(request_id)
 
         if data is None:
@@ -251,6 +285,8 @@ class Marketplace(object):
 
     def get_offer(self, offer_id) -> Optional[Offer]:
         """Returns a specific offer"""
+        assert self.offer_class, "cannot fetch without an offer class"
+
         data = self.contract.get_offer(offer_id)
 
         if data is None:

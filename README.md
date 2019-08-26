@@ -62,17 +62,19 @@ environment and python version differences):
 	$ py.test
 	$ tox
 
-For testing out the flower marketplace tool `flower.py`, you need
+For testing out the marketplace tool `offer-marketplace-cli`, you need
 first to set up the environment. First, set up truffle and a local
 ethereum node (Ganache, for example), then:
 
 	$ (cd solidity && truffle migrate)
-	$ export WEB_PROVIDER_URI=http://localhost:7545
-	$ export FLOWER_ACCOUNT=account-id-from-ganache-console
-	$ export FLOWER_CONTRACT=contract-from-truffle-migrate
-	$ python flower.py --manager add-request 1000 0 'in 5 minutes'
-	$ python flower.py list
+	$ export WEB3_PROVIDER_URI=http://localhost:7545
+	$ export MARKETPLACE_ACCOUNT=account-id-from-ganache-console
+	$ export MARKETPLACE_CONTRACT=contract-from-truffle-migrate
+	$ export REGISTERED_ACCOUNT=sofie_offer_marketplace_cli
+	$ offer-marketplace-cli --manager add-request "in 5 minutes" 1000 0
+	$ offer-marketplace-cli list
 
+Keep in mind that you should use `SET` instead of `export` in Windows.
 # Testing
 
 The provided makefile has simple targets to test all of the

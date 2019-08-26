@@ -23,6 +23,10 @@ class OwnerAccessRequired(Exception):
     """Owner access level is required for the operation attempted"""
 
 
+class UnknownMarketType(Exception):
+    """Marketplace must be registered"""
+
+
 class ContractException(Exception):
     """Exceptions originating from contract error codes"""
 
