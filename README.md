@@ -75,6 +75,18 @@ ethereum node (Ganache, for example), then:
 	$ offer-marketplace-cli list
 
 Keep in mind that you should use `SET` instead of `export` in Windows.
+
+# Running backend
+
+The provided backend is implemented by using `FlaskRESTful`. For running 
+the backend, first you should set its environment variable to located package:
+    
+    $ export FLASK_APP=sofie_offer_marketplace.backend
+    
+After this step, you can use the command below to run it:
+
+    $ flask run
+
 # Testing
 
 The provided makefile has simple targets to test all of the
