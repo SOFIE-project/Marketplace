@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 # TODO:
 #
@@ -23,8 +23,7 @@ setup(
     author_email='sofie-offer-marketplace@sofie-iot.eu',
     license='APL 2.0',
     package_dir={'': 'src'},
-    packages=['sofie_offer_marketplace', 'sofie_offer_marketplace_service', 'sofie_offer_marketplace_ui',
-              'sofie_offer_marketplace_cli'],
+    packages=find_packages(where='src'),
     ## There is nothing as-of in the reference platform, so keeping
     ## this commented.
     # dependency_links=['git+ssh://git@version.aalto.fi/sofie/open-source/reference-platform.git#egg=sofie_reference_platform-0.1'],
