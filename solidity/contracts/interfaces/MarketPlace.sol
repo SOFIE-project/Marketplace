@@ -25,7 +25,7 @@ interface MarketPlace {
 
     function getClosedRequestIdentifiers() external view returns (uint8 status, uint[] memory);
 
-    function getRequest(uint requestIdentifier) external view returns (uint8 status, uint deadline, uint stage);
+    function getRequest(uint requestIdentifier) external view returns (uint8 status, uint deadline, uint stage, address requestMaker);
 
     function getRequestOfferIDs(uint requestIdentifier) external view returns (uint8 status, uint[] memory offerIDs);
 

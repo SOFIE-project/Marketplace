@@ -48,6 +48,8 @@ contract('FlowerMarketPlace', function (accounts) {
         assert.equal(tx1.logs[0].args.status.toNumber(), 0, "status wasn't successful");
         assert.equal(tx1.logs[1].args.requestID.toNumber(), 1, "requestID wasn't 1");
         assert.equal(tx1.logs[1].args.deadline.toNumber(), 2000000000, "quantity wasn't 2000000000");
+        let {requestMaker: requestMaker} = await market.getRequest(tx1.logs[1].args.requestID.toNumber());
+        assert.equal(requestMaker, accounts[0], "request maker was not accounts[0]");
         let txx = await market.submitRequestArrayExtra(tx1.logs[1].args.requestID, [20, 3]);
         assert.equal(txx.logs[0].args.status.toNumber(), 0, "status wasn't successful");
         assert.equal(txx.logs[1].args.requestID.toNumber(), 1, "requestID wasn't 1");
