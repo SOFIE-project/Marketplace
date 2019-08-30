@@ -18,6 +18,7 @@ contract AbstractMarketPlace is MarketPlace, ERC165, StatusCodes {
         uint[] offerIDs;
         uint closingBlock;
         uint[] acceptedOfferIDs;
+        address requestMaker;
     }
 
     struct Offer {
@@ -72,13 +73,13 @@ contract AbstractMarketPlace is MarketPlace, ERC165, StatusCodes {
         return (Successful, closedRequestIDs);
     }
 
-    function getRequest(uint requestIdentifier) external view returns (uint8 status, uint deadline, uint stage) {
+    function getRequest(uint requestIdentifier) external view returns (uint8 status, uint deadline, uint stage, address requestMaker) {
         if(!requests[requestIdentifier].isDefined) {
-            return (UndefinedID, 0, 0);
+            return (UndefinedID, 0, 0, address(0));
         }
         require(requests[requestIdentifier].isDefined);
 
-        return (Successful, requests[requestIdentifier].deadline, uint(requests[requestIdentifier].reqStage));
+        return (Successful, requests[requestIdentifier].deadline, uint(requests[requestIdentifier].reqStage), requests[requestIdentifier].requestMaker);
     }
 
     function getRequestOfferIDs(uint requestIdentifier) external view returns (uint8 status, uint[] memory offerIDs) {

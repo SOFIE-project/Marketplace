@@ -32,9 +32,11 @@ contract AbstractManageableMarketPlace is AbstractMarketPlace, ManageableMarketP
         request.isDefined = true;
         request.reqStage = Stage.Pending;
         request.isDecided = false;
+        request.requestMaker = msg.sender;
         requests[request.ID] = request;
         emit FunctionStatus(Successful);
         emit RequestAdded(request.ID, request.deadline);
+        return (Successful, request.ID);
     }
 
     function closeRequest(uint requestIdentifier) public returns (uint8 status) {
