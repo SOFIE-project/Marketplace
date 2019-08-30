@@ -24,6 +24,8 @@ import "../interfaces/MultiManagers.sol";
 import "../StatusCodes.sol";
 
 contract MultiManagersBaseContract is MultiManagers, Ownable, ERC165, StatusCodes {
+    bytes4 private constant _INTERFACE_ID_ERC165 = 0x01ffc9a7;
+
     using Roles for Roles.Role;
     Roles.Role internal managers;
 
@@ -43,8 +45,9 @@ contract MultiManagersBaseContract is MultiManagers, Ownable, ERC165, StatusCode
         require(msg.sender == owner || isManager(msg.sender));
         _;
     }*/
-    constructor(address creator) public Ownable() ERC165() {
+    constructor(address creator) public Ownable() {
         managers.add(creator);
+        _registerInterface(_INTERFACE_ID_ERC165);
         _registerInterface(this.changeOwner.selector
                             ^ this.addManager.selector
                             ^ this.revokeManagerCert.selector);

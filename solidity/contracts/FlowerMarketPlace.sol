@@ -17,102 +17,29 @@
 pragma solidity ^0.5.8;
 pragma experimental ABIEncoderV2;
 
-import "./interfaces/MarketPlace.sol";
-import "./interfaces/ManageableMarketPlace.sol";
 import "./interfaces/ArrayExtraData.sol";
-import "./base/MultiManagersBaseContract.sol";
+import "./abstract/AbstractOwnerManagerMarketPlace.sol";
 
-contract FlowerMarketPlace is MarketPlace, MultiManagersBaseContract, ManageableMarketPlace, ArrayExtraData {
-
-    enum Stage {Pending, Open, Closed}
+contract FlowerMarketPlace is AbstractOwnerManagerMarketPlace, ArrayExtraData {
 
     enum FlowerType {Rose, Tulip, Jasmine, White}
 
-    struct Request {
-        uint ID;
+    struct RequestExtra {
         uint quantity;
         FlowerType flowerType;
-        uint deadline;
-        bool isDefined;
-        Stage reqStage;
-        bool isDecided;
-        uint[] offerIDs;
-        uint acceptedOfferID;
-        uint closingBlock;
     }
 
-    struct Offer {
-        uint ID;
+    struct OfferExtra {
         uint price;
-        uint requestID;
-        address offerMaker;
-        bool isDefined;
         Stage offStage;
     }
 
-    uint waitBeforeDeleteBlocks;
+    mapping (uint => RequestExtra) private requestsExtra;
+    mapping (uint => OfferExtra) private offersExtra;
 
-    uint private reqNum;
-    uint private offNum;
-    mapping (uint => Request) private requests;
-    mapping (uint => Offer) private offers;
-
-    uint[] private openRequestIDs;
-    uint[] private closedRequestIDs;
-
-    event RequestAdded(uint requestID, uint deadline);
-    event RequestExtraAdded(uint requestID);
-    event OfferAdded(uint offerID, uint requestID, address offerMaker);
-    event OfferExtraAdded(uint offerID);
-
-    constructor() MultiManagersBaseContract(msg.sender) public {
-        reqNum = 1;
-        offNum = 1;
-        waitBeforeDeleteBlocks = 1;
-        _registerInterface(this.getMarketInformation.selector
-                            ^ this.getOpenRequestIdentifiers.selector
-                            ^ this.getClosedRequestIdentifiers.selector
-                            ^ this.getRequest.selector
-                            ^ this.getRequestOfferIDs.selector
-                            ^ this.isOfferDefined.selector
-                            ^ this.getOffer.selector
-                            ^ this.submitOffer.selector
-                            ^ this.isRequestDefined.selector
-                            ^ this.isRequestDecided.selector
-                            ^ this.getRequestDecision.selector);
-
+    constructor() public {
         _registerInterface(this.submitOfferArrayExtra.selector
                             ^ this.submitRequestArrayExtra.selector);
-
-        _registerInterface(this.submitRequest.selector
-                            ^ this.closeRequest.selector
-                            ^ this.decideRequest.selector
-                            ^ this.deleteRequest.selector);
-    }
-    
-    // Get the information of market, for example the owner, etc.
-    function getMarketInformation() public view returns (uint8 status, address ownerAddress) {
-        return (Successful, owner());
-    }
-
-    // Get the Identifiers of the requests which are not closed yet.
-    function getOpenRequestIdentifiers() public view returns (uint8 status, uint[] memory) {
-        return (Successful, openRequestIDs);
-    }
-
-    // Get the Identifiers of the requests which are closed.
-    function getClosedRequestIdentifiers() public view returns (uint8 status, uint[] memory) {
-        return (Successful, closedRequestIDs);
-    }
-
-    // Get general details of a request.
-    function getRequest(uint requestIdentifier) public view returns (uint8 status, uint deadline, uint stage) {
-        if(!requests[requestIdentifier].isDefined) {
-            return (UndefinedID, 0, 0);
-        }
-        require(requests[requestIdentifier].isDefined);
-
-        return (Successful, requests[requestIdentifier].deadline, uint(requests[requestIdentifier].reqStage));
     }
 
     // Get the specific stipulations of a request.
@@ -122,32 +49,7 @@ contract FlowerMarketPlace is MarketPlace, MultiManagersBaseContract, Manageable
         }
         require(requests[requestIdentifier].isDefined);
 
-        return (Successful, requests[requestIdentifier].quantity, requests[requestIdentifier].flowerType);
-    }
-
-    // Get offer identifiers for a request.
-    function getRequestOfferIDs(uint requestIdentifier) public view returns (uint8 status, uint[] memory offerIDs) {
-        if(!requests[requestIdentifier].isDefined) {
-            return (UndefinedID, new uint[](0));
-        }
-        require(requests[requestIdentifier].isDefined);
-
-        return (Successful, requests[requestIdentifier].offerIDs);
-    }
-
-    // Check if an offer with the specified offer identifier is defined.
-    function isOfferDefined(uint offerIdentifier) public view returns (uint8 status, bool) {
-        return (Successful, offers[offerIdentifier].isDefined);
-    }
-
-    // Get general details of an offer.
-    function getOffer(uint offerIdentifier) public view returns (uint8 status, uint requestID, address offerMaker, uint stage) {
-        if(!offers[offerIdentifier].isDefined) {
-            return (UndefinedID, 0, address(0), 0);
-        }
-        require(offers[offerIdentifier].isDefined);
-
-        return (Successful, offers[offerIdentifier].requestID, offers[offerIdentifier].offerMaker, uint(offers[offerIdentifier].offStage));
+        return (Successful, requestsExtra[requestIdentifier].quantity, requestsExtra[requestIdentifier].flowerType);
     }
 
     // Get specific details of an offer.
@@ -157,7 +59,7 @@ contract FlowerMarketPlace is MarketPlace, MultiManagersBaseContract, Manageable
         }
         require(offers[offerIdentifier].isDefined);
 
-        return (Successful, offers[offerIdentifier].price);
+        return (Successful, offersExtra[offerIdentifier].price);
     }
 
     // By sending the identifier of a request, others can make offer to buy flowers.
@@ -177,18 +79,7 @@ contract FlowerMarketPlace is MarketPlace, MultiManagersBaseContract, Manageable
         require(requests[requestID].isDefined && now <= requests[requestID].deadline
             && requests[requestID].reqStage == Stage.Open);
 
-        Offer memory offer;
-        offer.requestID = requestID;
-        offer.offerMaker = msg.sender;
-        offer.ID = offNum;
-        offNum += 1;
-        offer.isDefined = true;
-        offer.offStage = Stage.Pending;
-        offers[offer.ID] = offer;
-        requests[offer.requestID].offerIDs.push(offer.ID);
-        emit FunctionStatus(Successful);
-        emit OfferAdded(offer.ID, offer.requestID, offer.offerMaker);
-        return (Successful, offer.ID);
+        return super.submitOffer(requestID);
     }
 
     // By sending the proposed price, others can complete and open their offer to buy flowers.
@@ -216,48 +107,12 @@ contract FlowerMarketPlace is MarketPlace, MultiManagersBaseContract, Manageable
             && offer.offerMaker == msg.sender
             && requests[offer.requestID].reqStage == Stage.Open);
 
-        offer.price = extra[0];
+        OfferExtra memory offerExtra;
+        offerExtra.price = extra[0];
         offer.offStage = Stage.Open;
         offers[offerID] = offer;
-        emit FunctionStatus(Successful);
-        emit OfferExtraAdded(offerID);
-        return (Successful, offerID);
-    }
-
-    // Check if a request with the specified request identifier is defined.
-    function isRequestDefined(uint requestIdentifier) public view returns (uint8 status, bool) {
-        return (Successful, requests[requestIdentifier].isDefined);
-    }
-
-    // Check if a defined request with the specified request identifier is decided.
-    function isRequestDecided(uint requestIdentifier) public view returns (uint8 status, bool) {
-        if(!requests[requestIdentifier].isDefined) {
-            return (UndefinedID, false);
-        }
-        require(requests[requestIdentifier].isDefined);
-
-        return (Successful, requests[requestIdentifier].isDecided);
-    }
-
-    // Get the identifier of accepted offer for a decided request.
-    function getRequestDecision(uint requestIdentifier) public view returns (uint8 status, uint[] memory acceptedOfferIDs) {
-        if(!requests[requestIdentifier].isDefined) {
-            return (UndefinedID, new uint[](0));
-        }
-        if(!requests[requestIdentifier].isDecided) {
-            return (ReqNotDecided, new uint[](0));
-        }
-        require(requests[requestIdentifier].isDefined && requests[requestIdentifier].isDecided);
-
-        if(requests[requestIdentifier].acceptedOfferID != 0) {
-            uint[] memory accoffIDs1 = new uint[](1);
-            accoffIDs1[0] = requests[requestIdentifier].acceptedOfferID;
-            return (Successful, accoffIDs1);
-        }
-        else {
-            uint[] memory accoffIDs2 = new uint[](0);
-            return (Successful, accoffIDs2);
-        }
+        offersExtra[offerID] = offerExtra;
+        return finishSubmitOfferExtra(offerID);
     }
 
     // By specifiying the deadline of the request, owner and managers
@@ -270,17 +125,7 @@ contract FlowerMarketPlace is MarketPlace, MultiManagersBaseContract, Manageable
         }
         require(msg.sender == owner() || isManager(msg.sender));
 
-        Request memory request;
-        request.deadline = deadline;
-        request.ID = reqNum;
-        reqNum += 1;
-        request.isDefined = true;
-        request.reqStage = Stage.Pending;
-        request.isDecided = false;
-        requests[request.ID] = request;
-        emit FunctionStatus(Successful);
-        emit RequestAdded(request.ID, request.deadline);
-        return (Successful, request.ID);
+        return super.submitRequest(deadline);
     }
 
     // By specifiying the type of the flowers, quantity of them, owner and managers
@@ -301,18 +146,11 @@ contract FlowerMarketPlace is MarketPlace, MultiManagersBaseContract, Manageable
         require(msg.sender == owner() || isManager(msg.sender));
         require(requests[requestID].isDefined && requests[requestID].reqStage == Stage.Pending);
 
-        requests[requestID].quantity = extra[0];
-        requests[requestID].flowerType = FlowerType(extra[1]);
-        openRequest(requestID);
-        emit FunctionStatus(Successful);
-        emit RequestExtraAdded(requestID);
-        return (Successful, requestID);
-    }
-
-    // Open a request.
-    function openRequest(uint requestIdentifier) private {
-        requests[requestIdentifier].reqStage = Stage.Open;
-        openRequestIDs.push(requests[requestIdentifier].ID);
+        RequestExtra memory requestExtra;
+        requestExtra.quantity = extra[0];
+        requestExtra.flowerType = FlowerType(extra[1]);
+        requestsExtra[requestID] = requestExtra;
+        return finishSubmitRequestExtra(requestID);
     }
 
     // Manually close a request, so others won't be able to make offers for it or even see it in the list of requests.
@@ -325,20 +163,7 @@ contract FlowerMarketPlace is MarketPlace, MultiManagersBaseContract, Manageable
         }
         require(msg.sender == owner() || isManager(msg.sender));
 
-        requests[requestIdentifier].reqStage = Stage.Closed;
-        requests[requestIdentifier].closingBlock = block.number;
-        closedRequestIDs.push(requestIdentifier);
-        for (uint j = 0; j < openRequestIDs.length; j++) {
-            if (openRequestIDs[j] == requestIdentifier) {
-                for (uint i = j; i < openRequestIDs.length - 1; i++){
-                    openRequestIDs[i] = openRequestIDs[i+1];
-                }
-                delete openRequestIDs[openRequestIDs.length-1];
-                openRequestIDs.length--;
-                emit FunctionStatus(Successful);
-                return Successful;
-            }
-        }
+        return super.closeRequest(requestIdentifier);
     }
 
     // Choose which offer to accept, based on the proposed prices. The decision process can differ for other markets,
@@ -351,20 +176,17 @@ contract FlowerMarketPlace is MarketPlace, MultiManagersBaseContract, Manageable
         }
         require(msg.sender == owner() || isManager(msg.sender));
 
-        closeRequest(requestIdentifier);
         uint maxOffer = 0;
-        uint acceptedOfferID = 0;
+        uint[] memory acceptedOfferIDs = new uint[](1);
         for (uint i = 0; i < requests[requestIdentifier].offerIDs.length; i++) {
             Offer memory offer = offers[requests[requestIdentifier].offerIDs[i]];
-            if (offer.offStage == Stage.Open && maxOffer < offer.price) {
-                maxOffer = offer.price;
-                acceptedOfferID = requests[requestIdentifier].offerIDs[i];
+            OfferExtra memory offerExtra = offersExtra[requests[requestIdentifier].offerIDs[i]];
+            if (offer.offStage == Stage.Open && maxOffer < offerExtra.price) {
+                maxOffer = offerExtra.price;
+                acceptedOfferIDs[0] = requests[requestIdentifier].offerIDs[i];
             }
         }
-        requests[requestIdentifier].acceptedOfferID = acceptedOfferID;
-        requests[requestIdentifier].isDecided = true;
-        emit FunctionStatus(Successful);
-        return Successful;
+        return _decideRequest(requestIdentifier, acceptedOfferIDs);
     }
 
     function deleteRequest(uint requestIdentifier) public returns (uint8 status) {
@@ -384,23 +206,7 @@ contract FlowerMarketPlace is MarketPlace, MultiManagersBaseContract, Manageable
         require(requests[requestIdentifier].reqStage == Stage.Closed
             && requests[requestIdentifier].closingBlock + waitBeforeDeleteBlocks <= block.number);
 
-        for (uint k = 0; k < requests[requestIdentifier].offerIDs.length; k++) {
-            delete offers[requests[requestIdentifier].offerIDs[k]];
-        }
-
-        delete requests[requestIdentifier];
-
-        for (uint j = 0; j < closedRequestIDs.length; j++) {
-            if (closedRequestIDs[j] == requestIdentifier) {
-                for (uint i = j; i < closedRequestIDs.length - 1; i++){
-                    closedRequestIDs[i] = closedRequestIDs[i+1];
-                }
-                delete closedRequestIDs[closedRequestIDs.length-1];
-                closedRequestIDs.length--;
-                emit FunctionStatus(Successful);
-                return Successful;
-            }
-        }
+        return super.deleteRequest(requestIdentifier);
     }
 
     // Returns the type of marketplace.
