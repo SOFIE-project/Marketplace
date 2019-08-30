@@ -15,3 +15,4 @@
 .eggs/
 doc/doctrees/
 doc/html
+.mypy_cache/
