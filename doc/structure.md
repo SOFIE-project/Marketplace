@@ -8,19 +8,20 @@ these two code groups.
 For this purpose the top-level project directory is structured as
 follows:
 
-* `sofie_offer_marketplace`
+* `src/sofie_offer_marketplace`
 
-  this is the actual python package code
+  This is the actual python package code that implements a generic
+  offer marketplace interface.
+
+* `src/sofie_offer_marketplace_cli`
+
+  This contains a command line tool that uses the generic interface,
+  and tries to be applicable in as many situations as possible.
 
 * `solidity`
 
-  contains solidity code
-
-* `examples`
-
-  examples, including sample marketplace implementation and deployment
-  scripts to make it possible to deploy the sample implementation
-  easily on AWS
+  Contains the actual solidity code, including `solidity/contracts`
+  for the contracts and tests in `solidity/tests`.
 
 * `doc`
 

@@ -14,4 +14,16 @@
 # implied.  See the License for the specific language governing
 # permissions and limitations under the License.
 
+"""
+This is the top-level class, and exports the following classes from
+:class:`sofie_offer_marketplace.core`:
+
+* :class:`sofie_offer_marketplace.core.Marketplace`
+* :class:`sofie_offer_marketplace.core.Request`
+* :class:`sofie_offer_marketplace.core.Offer`
+* :class:`sofie_offer_marketplace.core.Contract`
+
+
+"""
+
 from .core import Marketplace, Request, Offer, Contract, default_known_types

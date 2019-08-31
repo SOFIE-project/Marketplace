@@ -34,7 +34,7 @@ setup(
         'dateparser',  # for offer-marketplace-cli
     ],
     entry_points={
-        'console_scripts': ['offer-marketplace-cli=sofie_offer_marketplace_cli.offer_marketplace_cli:async_main']
+        'console_scripts': ['offer-marketplace-cli=sofie_offer_marketplace_cli:main']
     },
     tests_require=['pytest', 'pytest-asyncio', 'pytest-mock'],
     setup_requires=['tox-setuptools'],

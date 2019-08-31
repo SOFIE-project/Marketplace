@@ -1,7 +1,7 @@
-Offer Marketplace Architecture
-==============================
+Architecture
+============
 
-# Overview
+## Overview
 
 This implementation of the offer marketplace (OM) consists of two main
 components:
@@ -9,7 +9,7 @@ components:
 * **Backend server** that essentially performs all tasks the Ethereum
   smart contract is unable to do. The full extent of this depends a
   bit on the configuration of the setup. This is a REST server with no
-  native user-visible web interface.
+  native user-visible web interface (see :doc:`backend`).
 
   The backend server conforms to the SOFIE framework's requirements on
   service discoverablity, descriptiveness and linkage to DLTs.
@@ -21,9 +21,29 @@ components:
 
   This smart contract conforms to the SOFIE framework's requirements
   on service discoverability, descriptiveness and linkage to non-DLT
-  services.
+  services (see :doc:`smart-contract`).
 
-# Structure
+The overall marketplace architecture is flexible and can support
+marketplace operating in different configurations such as:
+
+* Offers can be made by anyone on the ledger, final decision made by
+  the smart contract.
+
+* Offers can be made only by a pre-approved list of entities, final
+  decision is made offline (in the backend).
+
+* Offers are not partially (or at all) public, e.g. the information
+  about the offers is not public and only a commitment (signed hash)
+  is on the ledger.
+
+These are just a few of the possible variations that the **smart
+contract and backend interfaces** support. Note that not all
+**implementations of these interfaces** are as flexible. The stubs and
+examples in this repository implement only a portion of this
+flexibility, but the core idea is that the **core APIs** themselves
+are useable in all situations.
+
+## Structure
 
 The picture below shows the overall structure of this repository.
 
@@ -38,7 +58,7 @@ functionality (HTML pages) etc. that extend beyond the base classes
 provided by the core code. A "regular" re-use of the code would base
 on the core classes, using the demo code only as an example.
 
-# Deployment
+## Deployment
 
 While a "real" deployment can be arbitrary complex, for testing
 purposes the demo code is deployed. The repository supports (or will

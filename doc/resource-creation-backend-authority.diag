@@ -1,0 +1,12 @@
+seqdiag {
+	Participant; "Smart Contract"; Backend;
+
+	default_fontsize = 14;
+	autonumber = True;
+	activation = none;
+
+	Participant -> Backend [label = "Create Resource\n(field 1, field 2, ...)"];
+	Backend -> Backend [label = "Store data"];
+	Backend -> "Smart Contract" [label = "Create Resource\n(id, field 1, field 2, ...)"];
+	Participant <-- Backend [label = "<id>"];
+}

@@ -1,7 +1,9 @@
-Offer Marketplace Configuration
-===============================
+Configuration
+=============
 
-# Python
+*This file seems a bit out of place, maybe to be removed later?*
+
+## Python
 
 The :class:`sofie_offer_marketplace.Marketplace` class represents an
 instantiation of a single marketplace. It will receive as input

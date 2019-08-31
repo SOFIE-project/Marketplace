@@ -1,0 +1,18 @@
+seqdiag {
+	Participant; "Smart Contract"; Backend;
+
+	default_fontsize = 14;
+	autonumber = True;
+	activation = none;
+
+	Participant -> Backend [label = "Register Resource Data\n(field 1, field 2, ...)"];
+	Backend -> Backend [label = "Store data"];
+	Backend -> Participant [label = "<signed hash>"];
+
+	Participant -> Participant [label = "Validate\nsignature"];
+	Participant -> Participant [label = "Validate hash against sent data"];
+
+	Participant -> "Smart Contract" [label = "Create Resource (signed hash)"];
+	"Smart Contract" -> "Smart Contract" [label = "Validate\nsignature"];
+	Participant <-- "Smart Contract" [label = "[id]"];
+}
