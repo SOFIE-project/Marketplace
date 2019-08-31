@@ -1,0 +1,11 @@
+{% extends "layout.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<h1>Welcome</h1>
+
+<form method="POST">
+  <button type="submit" class="btn btn-primary" name="role" value="manager">Manager</button>
+  <button type="submit" class="btn btn-primary" name="role" value="bidder">Bidder</button>
+  <button type="submit" class="btn btn-primary" name="role" value="anonymous">Anonymous</button>
+</form>
+{% endblock %}
