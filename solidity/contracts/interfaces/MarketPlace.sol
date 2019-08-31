@@ -1,3 +1,5 @@
+// -*- js -*-
+
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed
 // with this work for additional information regarding copyright
@@ -17,10 +19,23 @@
 pragma solidity ^0.5.8;
 pragma experimental ABIEncoderV2;
 
+/// Interface for contracts compliant to the SOFIE Offer Marketplace
+/// behavior
+///
+/// No method of this interface should emit an error (``require`` or
+/// similar) on what is considered "normal" error situations. They all
+/// return the status code as the first int return value (aka
+/// ``status``). If this is SUCCESS (e.g. value ``0``) then the other
+/// return values are valid. Otherwise the caller should inspect the
+/// ``status`` value and determine itself whether it can proceed.
+
 interface MarketPlace {
 
     function getMarketInformation() external view returns (uint8 status, address ownerAddress);
 
+    /// Returns the list of request identifiers for open requests,
+    /// e.g. those for which new offers can be submitted.
+    /// @return uint array of identifiers
     function getOpenRequestIdentifiers() external view returns (uint8 status, uint[] memory);
 
     function getClosedRequestIdentifiers() external view returns (uint8 status, uint[] memory);

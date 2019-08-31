@@ -1,0 +1,16 @@
+seqdiag {
+	default_fontsize = 14;
+	autonumber = True;
+	activation = none;
+
+	Participant -> "Smart Contract" [label = "Create Resource (field 1, field 2, ...)"];
+	Participant <-- "Smart Contract" [label = "[id]"];
+
+	Participant -> "Smart Contract" [label = "Get resource <id>"];
+	Participant <- "Smart Contract" [label = "[field 1, field 2, ...]"];
+
+	Participant -> Backend [label = "Get resource <id>"];
+	Backend -> "Smart Contract" [label = "Get resource <id>"];
+	Backend <- "Smart Contract" [label = "[field 1, field 2, ...]"];
+	Participant <- Backend [label = "[field 1, field 2, ...]"];
+}

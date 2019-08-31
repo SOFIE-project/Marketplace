@@ -1,0 +1,15 @@
+seqdiag {
+	default_fontsize = 14;
+	autonumber = True;
+	activation = none;
+
+	Participant -> "Smart Contract" [label = "Get Requests"];
+	Participant <- "Smart Contract" [label = "[(id, deadline,\n signed hash), ..]"];
+
+	Participant -> Participant [label = "Verify\nsignature"];
+
+	Participant -> Backend [label = "Get request <id>"];
+	Participant <- Backend [label = "{all request data}"];
+
+	Participant -> Participant [label = "Validate data\nagainst hash"];
+}

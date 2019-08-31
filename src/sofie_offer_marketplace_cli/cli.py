@@ -179,7 +179,7 @@ def get_parser():
     return p
 
 
-async def main():
+async def async_main():
     args = get_parser().parse_args()
     contract_interface = json.loads(open(args.interface_file).read())
 
@@ -299,9 +299,5 @@ Market specific:
         assert False, "unhandled command {}".format(args.command)
 
 
-def async_main():
-    asyncio.get_event_loop().run_until_complete(main())
-
-
-if __name__ == '__main__':
-    async_main()
+def main():
+    asyncio.get_event_loop().run_until_complete(async_main())

@@ -9,3 +9,6 @@ test:
 
 html:
 	cd doc && make html
+
+html-watch: html
+	while fswatch -1 -e '/\.' -e 'flymake' doc; do $(MAKE) html; done

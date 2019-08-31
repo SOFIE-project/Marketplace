@@ -1,0 +1,10 @@
+seqdiag {
+	Participant; "Smart Contract"; Backend;
+
+	default_fontsize = 14;
+	autonumber = True;
+	activation = none;
+
+	Participant -> "Smart Contract" [label = "Get Requests"];
+	Participant <- "Smart Contract" [label = "[(id, deadline,\n field 1, field 2, ..), ..]"];
+}

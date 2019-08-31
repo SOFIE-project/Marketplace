@@ -4,7 +4,7 @@ Smart Contract
 This document describes some of the things required of the smart
 contract (see [`solidity`](/solidity/) directory).
 
-# General Requirements
+## General Requirements
 
 The smart contract needs to support:
 
@@ -16,7 +16,7 @@ The smart contract needs to support:
 * Cleanly re-usable, e.g. extendable contract that has method stubs
   for operations that cannot be part of the generic interface
 
-# Specification
+## Specification
 
 > **NOTE**: This specification is guaranteed to change over time while
 > this BP is co-developed with RP and SOFIE pilots.
@@ -28,7 +28,7 @@ configurable aspects.
 
 The tentative offer marketplace interface is like this:
 
-```
+```javascript
 interface OfferMarketplace {
 	function getMarketInformation() returns (... ??? ...) public;
 	function getOpenRequestIdentifiers() returns (uint256[]) public;
@@ -43,7 +43,7 @@ interface OfferMarketplace {
 The actual contract constructor of the base contract needs to be
 something like this:
 
-```
+```javascript
 contract OfferMarketpleBaseContract is OfferMarketplace {
 	function A(string _infoUrl, ...) internal {
 		...
@@ -81,7 +81,7 @@ And so on. There are a ton of variability in these situations.
 In general the **final** contract to be deployed is constructed from
 base classes and mixins in somewhat this style:
 
-```
+```javascript
 contract FlowerMarketplace is OfferMarketplaceBaseContract, ApprovedAddressMixin, OfferCancellationMixin {
 	function FlowerMarketplace(...) public {
 		// constructor
@@ -109,7 +109,7 @@ contract FlowerMarketplace is OfferMarketplaceBaseContract, ApprovedAddressMixin
 }
 ```
 
-# Open issues
+## Open issues
 
 * How and in what format market information is returned
   (e.g. `getMarketInformation`)
