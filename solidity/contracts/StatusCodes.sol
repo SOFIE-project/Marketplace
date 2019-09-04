@@ -14,6 +14,7 @@ contract StatusCodes {
     uint8 constant internal AlreadySentOffer = 9;
     uint8 constant internal ImproperList = 10;
     uint8 constant internal DuplicateManager = 11;
+    uint8 constant internal InvalidInput = 12;
 
     event FunctionStatus(uint8 status);
 }

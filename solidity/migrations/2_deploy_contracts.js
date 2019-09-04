@@ -16,8 +16,14 @@
 
 var FlowerMarketPlace = artifacts.require("FlowerMarketPlace");
 var BeachChairMarketPlace = artifacts.require("BeachChairMarketPlace");
+var PopulatedDemoMarketPlace = artifacts.require("PopulatedDemoMarketPlace");
 
-module.exports = function(deployer) {
+module.exports = async function(deployer) {
     deployer.deploy(FlowerMarketPlace);
     deployer.deploy(BeachChairMarketPlace);
+    await deployer.deploy(PopulatedDemoMarketPlace);
+    var dm = await PopulatedDemoMarketPlace.deployed();
+    await dm.stepOne();
+    await dm.stepTwo();
+    await dm.stepThree();
 };
