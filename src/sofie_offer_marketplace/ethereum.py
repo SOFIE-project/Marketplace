@@ -33,7 +33,7 @@ class Status(Enum):
     AlreadySentOffer = 9
     ImproperList = 10
     DuplicateManager = 11
-
+    InvalidInput = 12
 
 class Web3Contract(Contract):
     """Concrete implementation of the :class:`Contract` interface that
