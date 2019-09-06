@@ -1,11 +1,23 @@
 {% extends "layout.html" %}
 {% block title %}Home{% endblock %}
+{% block navigation %}
+{% endblock %}
 {% block content %}
-<h1>Welcome</h1>
-
-<form method="POST">
-  <button type="submit" class="btn btn-primary" name="role" value="manager">Manager</button>
-  <button type="submit" class="btn btn-primary" name="role" value="bidder">Bidder</button>
-  <button type="submit" class="btn btn-primary" name="role" value="anonymous">Anonymous</button>
-</form>
+<div class="jumbotron">
+    <h1 class="display-4">Welcome</h1>
+    <p class="lead">
+      This is a demostration of SOFIE offer marketplace.
+    </p>
+    <hr class="my-4">
+    <p>Please select your role!</p>
+    <p class="lead">
+        <form method="POST">
+            <button type="submit" class="btn btn-primary" name="role" value="manager">Manager</button>
+            <button type="submit" class="btn btn-primary" name="role" value="bidder">Bidder</button>
+            <button type="submit" class="btn btn-primary" name="role" value="anonymous">Anonymous</button>
+        </form>
+    </p>
+</div>
+{% endblock %}
+{% block footer %}
 {% endblock %}
