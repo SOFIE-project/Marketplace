@@ -68,14 +68,16 @@ def update_role():
 @root.route('/requests')
 @roles()
 def list_requests():
-    return render_template('requests.html')
+    return render_template('requests.html', requests=list(requests.values()))
 
 
 @root.route('/request/<int:id>')
 @roles()
 def show_request(id: int):
-    return render_template('requests.html',
-                           request_id=id)
+    offerIDs = [offer['id'] for offer in requests[id]['offers']]
+    reqOffers = [offers[id] for id in offerIDs]
+    return render_template('request_details.html',
+                           request=requests[id], reqOffers=reqOffers)
 
 
 @root.route('/request/new')

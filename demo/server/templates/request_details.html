@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+{% block title %}Request Details {% endblock %}
+{% block content %}
+<div class="jumbotron">
+    <h1>Request {{ request['id'] }}</h1>
+    <ul>
+            <li> <strong>State:</strong> {{ request['state'] }}</li>
+            <li> <strong>Deadline:</strong>  {{ request['deadline'] }}</li>
+            <li> <strong>Creator:</strong> {{ request['creator'] }}</li>
+            <li> <strong>Variety:</strong> {{ request['extra']['variety'] }}</li>
+            <li> <strong>Quantity:</strong> {{ request['extra']['quantity'] }}</li>
+    </ul>
+    <h2>Offers</h2>
+    <table id="table" class="table table-hover display">
+        <thead>
+            <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Bidder</th>
+            <th scope="col">Minimum Quantity</th>
+            <th scope="col">Maximum Quantity</th>
+            <th scope="col">Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for offer in reqOffers %}
+            <tr>
+            <th scope="col"> {{ offer['id'] }}</th>
+            <td>{{ offer['creator'] }}</td>
+            <td>{{ offer['extra']['min'] }}</td>
+            <td>{{ offer['extra']['max'] }}</td>
+            <td>{{ offer['extra']['price'] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
