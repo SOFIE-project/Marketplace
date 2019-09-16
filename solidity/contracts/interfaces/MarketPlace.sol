@@ -17,7 +17,6 @@
 // permissions and limitations under the License.
 
 pragma solidity ^0.5.8;
-pragma experimental ABIEncoderV2;
 
 /// Interface for contracts compliant to the SOFIE Offer Marketplace
 /// behavior
