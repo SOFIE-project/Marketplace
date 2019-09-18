@@ -15,7 +15,6 @@
 // permissions and limitations under the License.
 
 pragma solidity ^0.5.8;
-pragma experimental ABIEncoderV2;
 
 import "./interfaces/ArrayExtraData.sol";
 import "./abstract/AbstractOwnerManagerMarketPlace.sol";
