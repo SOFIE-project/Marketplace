@@ -16,3 +16,8 @@
 doc/doctrees/
 doc/html
 .mypy_cache/
+
+# Virtual environment
+/venv/
+
+.vscode/

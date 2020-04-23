@@ -15,6 +15,7 @@ contract StatusCodes {
     uint8 constant internal ImproperList = 10;
     uint8 constant internal DuplicateManager = 11;
     uint8 constant internal InvalidInput = 12;
+    uint8 constant internal Fail= 13;
 
     event FunctionStatus(uint8 status);
 }

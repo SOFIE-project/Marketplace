@@ -29,7 +29,7 @@ setup(
     # dependency_links=['git+ssh://git@version.aalto.fi/sofie/open-source/reference-platform.git#egg=sofie_reference_platform-0.1'],
     install_requires=[
         # 'sofie_reference_platform',
-        'Flask',
+        'flask-restful',
         'web3',
         'dateparser',  # for offer-marketplace-cli
     ],

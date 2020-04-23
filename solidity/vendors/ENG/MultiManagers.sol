@@ -14,18 +14,17 @@
 // implied.  See the License for the specific language governing
 // permissions and limitations under the License.
 
-var FlowerMarketPlace = artifacts.require("FlowerMarketPlace");
-var BeachChairMarketPlace = artifacts.require("BeachChairMarketPlace");
-var HouseDecorationMarketPlace = artifacts.require("HouseDecorationMarketPlace");
-var PopulatedDemoMarketPlace = artifacts.require("PopulatedDemoMarketPlace");
+pragma solidity ^0.4.23;
+pragma experimental ABIEncoderV2;
 
-module.exports = async function(deployer) {
-    deployer.deploy(FlowerMarketPlace);
-    deployer.deploy(BeachChairMarketPlace);
-    deployer.deploy(HouseDecorationMarketPlace);
-    await deployer.deploy(PopulatedDemoMarketPlace);
-    var dm = await PopulatedDemoMarketPlace.deployed();
-    await dm.stepOne();
-    await dm.stepTwo();
-    await dm.stepThree();
-};
+interface MultiManagers {
+
+    function transferOwnership(address addr) external returns (int status);
+
+    function addManager(address managerAddress) external returns (int status);
+
+    function getManagers() external view returns (int status, address[] managerAddresses);
+
+    function revokeManagerCert(address managerAddress) external returns (int status);
+
+}

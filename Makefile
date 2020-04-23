@@ -7,6 +7,9 @@ test:
 	tox
 	cd solidity && npx truffle test
 
+test-contracts:
+	cd solidity && npx truffle test
+
 html:
 	cd doc && make html
 

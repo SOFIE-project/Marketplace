@@ -97,8 +97,10 @@ class Web3Contract(Contract):
                 self.contract.functions.isRequestDefined(request_id).call()):
             return None
 
-        deadline, stage = self.status(
-            self.contract.functions.getRequest(request_id).call())
+        #deadline, stage = self.status(
+        #    self.contract.functions.getRequest(request_id).call())
+
+        status,deadline, stage, address = self.contract.functions.getRequest(request_id).call()
 
         is_pending = stage == 0
         is_open = stage == 1

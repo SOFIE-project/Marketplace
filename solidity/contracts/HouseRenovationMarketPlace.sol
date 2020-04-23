@@ -19,13 +19,14 @@ pragma solidity ^0.5.8;
 import "./interfaces/ArrayExtraData.sol";
 import "./abstract/AbstractOwnerManagerMarketPlace.sol";
 
-contract FlowerMarketPlace is AbstractOwnerManagerMarketPlace, ArrayExtraData {
-
-    enum FlowerType {Rose, Tulip, Jasmine, White}
+contract HouseDecorationMarketPlace is AbstractOwnerManagerMarketPlace, ArrayExtraData {
+    enum RoomType {LivingRoom, Bedroom, Kitchen, Bathroom}
 
     struct RequestExtra {
         uint quantity;
-        FlowerType flowerType;
+        RoomType roomType;
+        uint priceLimit;
+        uint priceTarget;
     }
 
     struct OfferExtra {
@@ -41,73 +42,75 @@ contract FlowerMarketPlace is AbstractOwnerManagerMarketPlace, ArrayExtraData {
     }
 
     // Get the specific stipulations of a request.
-    function getRequestExtra(uint requestIdentifier) public view returns (uint8 status, uint quantity, FlowerType flowerType) {
+    function getRequestExtra(uint requestIdentifier) public view returns (uint8 status, uint quantity, RoomType roomType, uint priceLimit, uint priceTarget) {
+        // request undefined
         if(!requests[requestIdentifier].isDefined) {
-            return (UndefinedID, 0, FlowerType(0));
+            return (UndefinedID, 0, RoomType(0), 0, 0);
         }
-        require(requests[requestIdentifier].isDefined);
-
-        return (Successful, requestsExtra[requestIdentifier].quantity, requestsExtra[requestIdentifier].flowerType);
+        // fetch requestExtra
+        RequestExtra memory requestExtra = requestsExtra[requestIdentifier];
+        return (Successful, requestExtra.quantity, requestExtra.roomType, requestExtra.priceLimit, requestExtra.priceTarget);
     }
 
     // Get specific details of an offer.
     function getOfferExtra(uint offerIdentifier) public view returns (uint8 status, uint price) {
+        // offer undefined
         if(!offers[offerIdentifier].isDefined) {
             return (UndefinedID, 0);
         }
-        require(offers[offerIdentifier].isDefined);
-
-        return (Successful, offersExtra[offerIdentifier].price);
+        OfferExtra memory offerExtra = offersExtra[offerIdentifier];
+        return (Successful, offerExtra.price);
     }
 
-    // By sending the identifier of a request, others can make offer to buy flowers.
+    // By sending the identifier of a request, agencies can make offer to compete for the house decoration contract.
     function submitOffer(uint requestID) public returns (uint8 status, uint offerID) {
+        // request undefined
         if(!requests[requestID].isDefined) {
             emit FunctionStatus(UndefinedID);
             return (UndefinedID, 0);
         }
+        // deadline passed
         if(now > requests[requestID].deadline) {
             emit FunctionStatus(DeadlinePassed);
             return (DeadlinePassed, 0);
         }
+        // request not open
         if(requests[requestID].reqStage != Stage.Open) {
             emit FunctionStatus(RequestNotOpen);
             return (RequestNotOpen, 0);
         }
-        require(requests[requestID].isDefined && now <= requests[requestID].deadline
-            && requests[requestID].reqStage == Stage.Open);
-
         return super.submitOffer(requestID);
     }
 
-    // By sending the proposed price, others can complete and open their offer to buy flowers.
+    // By sending the proposed price, agencies can complete and open their offer to compete for the house decoration contract.
     // (only the initial offer maker can access this function).
     function submitOfferArrayExtra(uint offerID, uint[] calldata extra) external returns (uint8 status, uint offID) {
         Offer memory offer = offers[offerID];
-
+        // offer undefined
         if(!offer.isDefined) {
             emit FunctionStatus(UndefinedID);
             return (UndefinedID, 0);
         }
+        // offer is not pending
         if(offer.offStage != Stage.Pending) {
             emit FunctionStatus(NotPending);
             return (NotPending, 0);
         }
+        // access is limited to offer maker only
         if(offer.offerMaker != msg.sender) {
             emit FunctionStatus(AccessDenied);
             return (AccessDenied, 0);
         }
+        // request is not open
         if(requests[offer.requestID].reqStage != Stage.Open) {
             emit FunctionStatus(RequestNotOpen);
             return (RequestNotOpen, 0);
         }
-        require(offer.isDefined && offer.offStage == Stage.Pending
-            && offer.offerMaker == msg.sender
-            && requests[offer.requestID].reqStage == Stage.Open);
 
         OfferExtra memory offerExtra;
         offerExtra.price = extra[0];
         offer.offStage = Stage.Open;
+        // update offers and offersExtra
         offers[offerID] = offer;
         offersExtra[offerID] = offerExtra;
         return finishSubmitOfferExtra(offerID);
@@ -117,38 +120,41 @@ contract FlowerMarketPlace is AbstractOwnerManagerMarketPlace, ArrayExtraData {
     // can add a new request. It will have a unique identifier and others will be able to make offers for it
     // (only owner or managers can access this function).
     function submitRequest(uint deadline) public returns (uint8 status, uint requestID) {
+        // not owner of managers
         if(!(msg.sender == owner() || isManager(msg.sender))) {
             emit FunctionStatus(AccessDenied);
             return (AccessDenied, 0);
         }
-        require(msg.sender == owner() || isManager(msg.sender));
-
         return super.submitRequest(deadline);
     }
 
-    // By specifiying the type of the flowers, quantity of them, owner and managers
+    // By specifiying the type of the roms with quantity, owner and managers
     // can complete a request (only owner or managers can access this function).
     function submitRequestArrayExtra(uint requestID, uint[] calldata extra) external returns (uint8 status, uint reqID) {
+        // not owner or managers
         if(!(msg.sender == owner() || isManager(msg.sender))) {
             emit FunctionStatus(AccessDenied);
             return (AccessDenied, 0);
         }
+        // request undefined
         if(!requests[requestID].isDefined) {
             emit FunctionStatus(UndefinedID);
             return (UndefinedID, 0);
         }
+        // request not pending
         if(requests[requestID].reqStage != Stage.Pending) {
             emit FunctionStatus(NotPending);
             return (NotPending, 0);
         }
-        require(msg.sender == owner() || isManager(msg.sender));
-        require(requests[requestID].isDefined && requests[requestID].reqStage == Stage.Pending);
 
         RequestExtra memory requestExtra;
         requestExtra.quantity = extra[0];
-        requestExtra.flowerType = FlowerType(extra[1]);
+        requestExtra.roomType = RoomType(extra[1]);
+        requestExtra.priceLimit = extra[2];
+        requestExtra.priceTarget = extra[3];
+        // update requestsExtra
         requestsExtra[requestID] = requestExtra;
-        return finishSubmitRequestExtra(requestID);
+        return finishSubmitRequestExtra(requestID); // this opens the request and updates the requests
     }
 
     // Manually close a request, so others won't be able to make offers for it or even see it in the list of requests.
@@ -160,8 +166,6 @@ contract FlowerMarketPlace is AbstractOwnerManagerMarketPlace, ArrayExtraData {
             emit FunctionStatus(AccessDenied);
             return AccessDenied;
         }
-        require(msg.sender == owner() || isManager(msg.sender));
-
         return super.closeRequest(requestIdentifier);
     }
 
@@ -176,43 +180,56 @@ contract FlowerMarketPlace is AbstractOwnerManagerMarketPlace, ArrayExtraData {
         }
         require(msg.sender == owner() || isManager(msg.sender));
 
-        uint maxOffer = 0;
+        uint minOffer = requestsExtra[requestIdentifier].priceLimit;
+        uint limit = requestsExtra[requestIdentifier].priceLimit;
+        uint target = requestsExtra[requestIdentifier].priceTarget;
+
         uint[] memory acceptedOfferIDs = new uint[](1);
         for (uint i = 0; i < requests[requestIdentifier].offerIDs.length; i++) {
             Offer memory offer = offers[requests[requestIdentifier].offerIDs[i]];
             OfferExtra memory offerExtra = offersExtra[requests[requestIdentifier].offerIDs[i]];
-            if (offer.offStage == Stage.Open && maxOffer < offerExtra.price) {
-                maxOffer = offerExtra.price;
+            if (offer.offStage == Stage.Open && offerExtra.price <= target) {
+              acceptedOfferIDs[0] = requests[requestIdentifier].offerIDs[i];
+              return _decideRequest(requestIdentifier, acceptedOfferIDs);
+            }
+            if (offer.offStage == Stage.Open && offerExtra.price > limit) {
+              continue;
+            }
+            if (offer.offStage == Stage.Open && offerExtra.price < minOffer) {
+                minOffer = offerExtra.price;
                 acceptedOfferIDs[0] = requests[requestIdentifier].offerIDs[i];
             }
+        }
+        if (acceptedOfferIDs[0] == 0) {
+          return Fail;
         }
         return _decideRequest(requestIdentifier, acceptedOfferIDs);
     }
 
     function deleteRequest(uint requestIdentifier) public returns (uint8 status) {
         require(requests[requestIdentifier].isDefined);
+        // not owner or managers
         if(!(msg.sender == owner() || isManager(msg.sender))) {
             emit FunctionStatus(AccessDenied);
             return AccessDenied;
         }
+        // request not closed
         if(requests[requestIdentifier].reqStage != Stage.Closed) {
             emit FunctionStatus(ReqNotClosed);
             return ReqNotClosed;
         }
+        // waiting for closing
         if(requests[requestIdentifier].closingBlock + waitBeforeDeleteBlocks > block.number) {
             emit FunctionStatus(NotTimeForDeletion);
             return NotTimeForDeletion;
         }
-        require(msg.sender == owner() || isManager(msg.sender));
-        require(requests[requestIdentifier].reqStage == Stage.Closed
-            && requests[requestIdentifier].closingBlock + waitBeforeDeleteBlocks <= block.number);
 
         return super.deleteRequest(requestIdentifier);
     }
 
     // Returns the type of marketplace.
     function getType() external view returns (uint8 status, string memory) {
-        return (Successful, "eu.sofie-iot.offer-marketplace-demo.flower");
+        return (Successful, "eu.sofie-iot.offer-marketplace-demo.house-renovation");
     }
 
 }

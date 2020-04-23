@@ -192,7 +192,7 @@ async def async_main():
             assert False, "no account specified, and no default available"
         w3.eth.defaultAccount = w3.eth.accounts[0]
 
-    w3.personal.unlockAccount(w3.eth.defaultAccount, args.password, 1)
+    w3.geth.personal.unlockAccount(w3.eth.defaultAccount, args.password, 1)
 
     c = Web3Contract(w3,
                      contract_address=args.contract,

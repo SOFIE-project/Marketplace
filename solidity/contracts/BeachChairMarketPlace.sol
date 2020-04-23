@@ -161,6 +161,7 @@ contract BeachChairMarketPlace is AbstractOwnerManagerMarketPlace, ArrayExtraDat
     // In this implementation, this is completely apart from request's deadline. This can be modified based on the
     // specifications of the market we have (only owner or managers can access this function).
     function closeRequest(uint requestIdentifier) public returns (uint8 status) {
+        require(requests[requestIdentifier].isDefined);
         if(!(msg.sender == owner() || isManager(msg.sender))) {
             emit FunctionStatus(AccessDenied);
             return AccessDenied;
@@ -189,6 +190,7 @@ contract BeachChairMarketPlace is AbstractOwnerManagerMarketPlace, ArrayExtraDat
     // of offers they want to accept. Some validity checks will be performed on the array of accepted offers,
     // before finalizing the decision (only owner or managers can access this function).
     function decideRequest(uint requestIdentifier, uint[] calldata acceptedOfferIDs) external returns (uint8 status) {
+        require(requests[requestIdentifier].isDefined);
         if(!(msg.sender == owner() || isManager(msg.sender))) {
             emit FunctionStatus(AccessDenied);
             return AccessDenied;
@@ -205,6 +207,7 @@ contract BeachChairMarketPlace is AbstractOwnerManagerMarketPlace, ArrayExtraDat
     }
 
     function deleteRequest(uint requestIdentifier) public returns (uint8 status) {
+        require(requests[requestIdentifier].isDefined);
         if(!(msg.sender == owner() || isManager(msg.sender))) {
             emit FunctionStatus(AccessDenied);
             return AccessDenied;

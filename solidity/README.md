@@ -1,5 +1,4 @@
-Flower and Beach Chair Marketplaces
-=================
+# SOFIE Offer Marketplace
 
 This repository contains the implementation of some sample **Offer Marketplace**s, called **Flower Marketplace**, and **Beach Chair Marketplace**.
 

@@ -1,15 +1,20 @@
 {
   "name": "sofie-offer-marketplace",
-  "version": "0.1.0",
-  "description": "Template implementation of the SOFIE project's Offer Marketplace business platform",
+  "version": "0.2.2",
+  "description": "Interfaces and template implementation of the SOFIE project's Offer Marketplace business platform",
+  "files": [
+    "/contracts/**/*.sol"
+  ],
   "directories": {
     "test": "test"
   },
-  "repository": "https://github.com/SOFIE-project/offer-marketplace",
+  "repository": "https://github.com/SOFIE-project/Marketplace",
   "author": "SOFIE Project",
   "license": "APL 2.0",
   "devDependencies": {
     "@openzeppelin/contracts": "^2.3.0",
-    "truffle": "^5.0.29"
+    "truffle": "^5.0.29",
+    "mocha-junit-reporter": "^1.23.3",
+    "mocha-multi-reporters": "^1.1.7"
   }
 }
