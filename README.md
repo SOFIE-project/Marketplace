@@ -25,7 +25,7 @@
 ## Description
 
 The SOFIE Marketplace component provides a generic model of request-offer (or
-proposal-bid) batch transaction model. It can used to implement autions using different pricing models.
+proposal-bid) batch transaction model. It can used to implement auctions using different pricing models.
 
 Examples of how the Marketplace can be used include
 - [flower marketplace](doc/examples.md/#Flower-Marketplace) and the [beach chair marketplace](doc/examples.md/#Beach-Chair-Marketplace), which are auctions, where the highest bid (or lowest depending on the auction)  wins
