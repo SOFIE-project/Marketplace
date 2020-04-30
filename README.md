@@ -260,7 +260,7 @@ Sphinx. You can see the `md` and `rst` files in the `doc`
 directory. To generate the documentation you should install `sphinx`
 and the various sphinx extensions that are used:
 
-    $ pip install sphinx m2r sphinxcontrib-httpdomain sphinxcontrib-soliditydomain sphinxcontrib-seqdiag
+    $ pip install 'sphinx<3.0.0' m2r sphinxcontrib-httpdomain sphinxcontrib-soliditydomain sphinxcontrib-seqdiag
 
 Now you can run
 
