@@ -1,6 +1,6 @@
 # Example Use Cases of Offer Marketplace
 
-This document describes several application use cases that utilize the SOFIE Marketplace interfaces.
+This document describes several application use cases that utilise the SOFIE Marketplace interfaces.
 
 ## Flower Marketplace
 

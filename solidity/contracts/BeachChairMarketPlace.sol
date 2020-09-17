@@ -19,7 +19,7 @@ pragma solidity ^0.5.8;
 import "./interfaces/ArrayExtraData.sol";
 import "./abstract/AbstractOwnerManagerMarketPlace.sol";
 
-contract BeachChairMarketPlace is AbstractOwnerManagerMarketPlace, ArrayExtraData {
+contract BeachChairMarketPlace is AbstractOwnerManagerMarketPlace, ArrayRequestExtraData, ArrayOfferExtraData {
 
     struct RequestExtra {
         uint quantity;
@@ -88,7 +88,7 @@ contract BeachChairMarketPlace is AbstractOwnerManagerMarketPlace, ArrayExtraDat
 
     // By adding the proposed quantity, and the total price, others can complete and open their offer
     // (only the initial offer maker can access this function).
-    function submitOfferArrayExtra(uint offerID, uint[] calldata extra) external returns (uint8 status, uint offID) {
+    function submitOfferArrayExtra(uint offerID, uint[] calldata extra) external payable returns (uint8 status, uint offID) {
         Offer memory offer = offers[offerID];
 
         if(!offer.isDefined) {

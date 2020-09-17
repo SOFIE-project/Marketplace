@@ -21,3 +21,6 @@ doc/html
 /venv/
 
 .vscode/
+
+# Test results
+tests/*.xml

@@ -3,8 +3,9 @@ pragma solidity ^0.5.8;
 import "@openzeppelin/contracts/introspection/ERC165.sol";
 import "../interfaces/MarketPlace.sol";
 import "../StatusCodes.sol";
+import "../interfaces/TradeResource.sol";
 
-contract AbstractMarketPlace is MarketPlace, ERC165, StatusCodes {
+contract AbstractMarketPlace is TradeResource, MarketPlace, ERC165, StatusCodes {
     bytes4 private constant _INTERFACE_ID_ERC165 = 0x01ffc9a7;
 
     enum Stage { Pending, Open, Closed }
@@ -19,6 +20,7 @@ contract AbstractMarketPlace is MarketPlace, ERC165, StatusCodes {
         uint closingBlock;
         uint[] acceptedOfferIDs;
         address requestMaker;
+        uint decisionTime;
     }
 
     struct Offer {
@@ -43,6 +45,7 @@ contract AbstractMarketPlace is MarketPlace, ERC165, StatusCodes {
     event RequestExtraAdded(uint requestID);
     event OfferAdded(uint offerID, uint requestID, address offerMaker);
     event OfferExtraAdded(uint offerID);
+    event TradeSettled(uint requestID, uint offerID);
 
     constructor() public {
         reqNum = 1;
@@ -60,7 +63,8 @@ contract AbstractMarketPlace is MarketPlace, ERC165, StatusCodes {
                             ^ this.submitOffer.selector
                             ^ this.isRequestDefined.selector
                             ^ this.isRequestDecided.selector
-                            ^ this.getRequestDecision.selector);
+                            ^ this.getRequestDecision.selector
+                            ^ this.settleTrade.selector);
     }
 
     function getMarketInformation() external view returns (uint8 status, address ownerAddress);
@@ -119,17 +123,40 @@ contract AbstractMarketPlace is MarketPlace, ERC165, StatusCodes {
         return (Successful, offer.ID);
     }
 
-    function isRequestDefined(uint requestIdentifier) external view returns (uint8 status, bool) {
+    function isRequestDefined(uint requestIdentifier) public view returns (uint8 status, bool) {
         return (Successful, requests[requestIdentifier].isDefined);
     }
 
-    function isRequestDecided(uint requestIdentifier) external view returns (uint8 status, bool) {
+    function isRequestDecided(uint requestIdentifier) public view returns (uint8 status, bool) {
         if(!requests[requestIdentifier].isDefined) {
             return (UndefinedID, false);
         }
         require(requests[requestIdentifier].isDefined);
 
         return (Successful, requests[requestIdentifier].isDecided);
+    }
+
+    function settleTrade(uint requestID, uint offerID) public returns (uint8 status) {
+        (, bool isRequestDefined) = isRequestDefined(requestID);
+        if (!isRequestDefined) {
+            emit FunctionStatus(UndefinedID);
+            return UndefinedID;
+        }
+
+        emit TradeSettled(requestID, offerID);
+        return Successful;
+    }
+
+    function getRequestDecisionTime(uint requestIdentifier) public view returns (uint8 status, uint) {
+        if(!requests[requestIdentifier].isDefined) {
+            return (UndefinedID, 0);
+        }
+        if(!requests[requestIdentifier].isDecided) {
+            return (ReqNotDecided, 0);
+        }
+        require(requests[requestIdentifier].isDefined && requests[requestIdentifier].isDecided);
+
+        return (Successful, requests[requestIdentifier].decisionTime);
     }
 
     function getRequestDecision(uint requestIdentifier) public view returns (uint8 status, uint[] memory acceptedOfferIDs) {

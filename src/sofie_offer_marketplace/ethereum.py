@@ -43,6 +43,8 @@ class Web3Contract(Contract):
 
     All methods in this class are synchronous and **can block**
     indefinitely.
+    :param object contract_interface: Note here the code assumes the parameter
+        to be the complete contract artifact, not the abi inside
     """
 
     def __init__(self,
@@ -50,7 +52,8 @@ class Web3Contract(Contract):
                  contract=None,
                  contract_address=None,
                  contract_interface=None,
-                 contract_file=None):
+                 contract_file=None,
+                 minter=None):
         assert sum([v is not None for v in [contract, contract_interface,
                                             contract_file]]) == 1, "One and only one of contract, contract_interface and contract_file parameters may be specified"
 
@@ -71,6 +74,8 @@ class Web3Contract(Contract):
         self.contract = contract
         self.last_block_number = None
         self.last_gas_used = None
+        self.minter = minter
+
 
     def status(self, result: List[Any]) -> List[Any]:
         assert len(result) >= 1
@@ -82,15 +87,29 @@ class Web3Contract(Contract):
         if status == Status.AccessDenied.value:
             raise exceptions.AccessDenied()
 
+        if status == Status.UndefinedID.value:
+            raise exceptions.UndefinedID()
+
         assert False, \
             "sorry, error type {} not yet properly handled".format(status)
+
 
     def status1(self, result: List[Any]) -> Any:
         return self.status(result)[0]
 
-    def get_request_ids(self) -> List[int]:
+
+    def get_open_request_ids(self) -> List[int]:
         return self.status1(
             self.contract.functions.getOpenRequestIdentifiers().call())
+
+    def get_closed_request_ids(self) -> List[int]:
+        return self.status1(
+            self.contract.functions.getClosedRequestIdentifiers().call())
+
+
+    def get_request_ids(self) -> List[int]:
+        return self.get_open_request_ids() + self.get_closed_request_ids()
+
 
     def get_request(self, request_id: int) -> Optional[Dict[str, Any]]:
         if not self.status1(
@@ -100,7 +119,7 @@ class Web3Contract(Contract):
         #deadline, stage = self.status(
         #    self.contract.functions.getRequest(request_id).call())
 
-        status,deadline, stage, address = self.contract.functions.getRequest(request_id).call()
+        status, deadline, stage, address = self.contract.functions.getRequest(request_id).call()
 
         is_pending = stage == 0
         is_open = stage == 1
@@ -128,6 +147,7 @@ class Web3Contract(Contract):
 
         return result
 
+
     def get_request_extra(self, request_id: int) -> Any:
         if not self.status1(
                 self.contract.functions.isRequestDefined(request_id).call()):
@@ -141,9 +161,14 @@ class Web3Contract(Contract):
 
         return [extra]
 
+
     def add_request(self, deadline: int) -> int:
-        tx_hash = self.contract.functions.submitRequest(
-            deadline).transact({'gas': 1000000})
+        try:
+            tx_hash = self.contract.functions.submitRequest(
+                deadline).transact({'gas': 1000000, 'from': self.minter})
+        except Exception as e:
+            print(e)
+            return -1
 
         tx_receipt = self.web3.eth.waitForTransactionReceipt(tx_hash)
 
@@ -156,11 +181,15 @@ class Web3Contract(Contract):
 
         return request_id
 
+
     def add_request_extra(self, request_id: int, extra: List[Any]) -> bool:
-        # FIXME: This is now tied to the flower market specifically
-        tx_hash = self.contract.functions.submitRequestArrayExtra(
-            request_id,
-            *extra).transact({'gas': 1000000})
+        try:
+            tx_hash = self.contract.functions.submitRequestArrayExtra(
+                request_id,
+                extra).transact({'gas': 1000000, 'from': self.minter})
+        except Exception as e:
+            print(e)
+            return False
 
         tx_receipt = self.web3.eth.waitForTransactionReceipt(tx_hash)
 
@@ -168,6 +197,7 @@ class Web3Contract(Contract):
         self.last_gas_used = tx_receipt.gasUsed
 
         return True
+
 
     def get_offer(self, offer_id: int) -> Optional[Dict[str, Any]]:
         if not self.status1(
@@ -182,6 +212,7 @@ class Web3Contract(Contract):
             author=author,
             stage=stage)
 
+
     def get_offer_extra(self, offer_id: int) -> Any:
         if not self.status1(
                 self.contract.functions.isOfferDefined(offer_id).call()):
@@ -195,9 +226,14 @@ class Web3Contract(Contract):
 
         return [extra]
 
+
     def add_offer(self, request_id: int) -> int:
-        tx_hash = self.contract.functions.submitOffer(
-            request_id).transact({'gas': 1000000})
+        try:
+            tx_hash = self.contract.functions.submitOffer(
+                request_id).transact({'gas': 1000000, 'from': self.minter})
+        except Exception as e:
+            print(e)
+            return -1
 
         tx_receipt = self.web3.eth.waitForTransactionReceipt(tx_hash)
 
@@ -210,11 +246,12 @@ class Web3Contract(Contract):
 
         return offer_id
 
+
     def add_offer_extra(self, offer_id: int, extra: List[Any]) -> bool:
         # FIXME: This is now tied to the flower market specifically
         tx_hash = self.contract.functions.submitOfferArrayExtra(
             offer_id,
-            *extra).transact({'gas': 1000000})
+            extra).transact({'gas': 1000000, 'from': self.minter})
 
         tx_receipt = self.web3.eth.waitForTransactionReceipt(tx_hash)
 
@@ -223,16 +260,56 @@ class Web3Contract(Contract):
 
         return True
 
+
+    def close_request(self, request_id: int):
+        tx_hash = self.contract.functions \
+            .closeRequest(request_id) \
+            .transact({'gas': 1000000, 'from': self.minter})
+
+        tx_receipt = self.web3.eth.waitForTransactionReceipt(tx_hash)
+
+        self.last_block_number = tx_receipt.blockNumber
+        self.last_gas_used = tx_receipt.gasUsed
+
+        return request_id in self.status1(
+            self.contract.functions
+                .getClosedRequestIdentifiers()
+                .call()
+            )
+
+
     def decide_request(self, request_id: int,
                        selected_offer_ids: List[int] = []) -> bool:
         tx_hash = self.contract.functions.decideRequest(
             request_id,
-            selected_offer_ids).transact({'gas': 1000000})
+            selected_offer_ids).transact({'gas': 1000000, 'from': self.minter})
 
         tx_receipt = self.web3.eth.waitForTransactionReceipt(tx_hash)
 
+        self.last_block_number = tx_receipt.blockNumber
+        self.last_gas_used = tx_receipt.gasUsed
+
         return cast(bool, self.status1(
             self.contract.functions.isRequestDecided(request_id).call()))
+
+
+    def delete_request(self, request_id: int) -> bool:
+        try:
+            tx_hash = self.contract.functions \
+                .deleteRequest(request_id) \
+                .transact({'gas': 1000000, 'from': self.minter})
+        except Exception as e:
+            print(e)
+            return False
+
+        tx_receipt = self.web3.eth.waitForTransactionReceipt(tx_hash)
+
+        self.last_block_number = tx_receipt.blockNumber
+        self.last_gas_used = tx_receipt.gasUsed
+
+        return not self.status1(
+            self.contract.functions.isRequestDefined(request_id).call())
+
 
     def get_type(self) -> str:
         return self.status1(self.contract.functions.getType().call())

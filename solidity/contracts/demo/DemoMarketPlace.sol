@@ -3,7 +3,7 @@ pragma solidity ^0.5.8;
 import "../abstract/AbstractOwnerManagerMarketPlace.sol";
 import "../interfaces/ArrayExtraData.sol";
 
-contract DemoMarketPlace is AbstractOwnerManagerMarketPlace, ArrayExtraData {
+contract DemoMarketPlace is AbstractOwnerManagerMarketPlace, ArrayRequestExtraData, ArrayOfferExtraData {
     struct RequestExtra {
         uint quantity;
         uint variety;
@@ -60,7 +60,7 @@ contract DemoMarketPlace is AbstractOwnerManagerMarketPlace, ArrayExtraData {
         return super.submitOffer(requestID);
     }
 
-    function submitOfferArrayExtra(uint offerID, uint[] calldata extra) external returns (uint8 status, uint offID) {
+    function submitOfferArrayExtra(uint offerID, uint[] calldata extra) external payable returns (uint8 status, uint offID) {
         Offer memory offer = offers[offerID];
 
         if(!offer.isDefined) {

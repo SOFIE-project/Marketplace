@@ -19,7 +19,7 @@ pragma solidity ^0.5.8;
 import "./interfaces/ArrayExtraData.sol";
 import "./abstract/AbstractOwnerManagerMarketPlace.sol";
 
-contract HouseDecorationMarketPlace is AbstractOwnerManagerMarketPlace, ArrayExtraData {
+contract HouseDecorationMarketPlace is AbstractOwnerManagerMarketPlace, ArrayRequestExtraData, ArrayOfferExtraData {
     enum RoomType {LivingRoom, Bedroom, Kitchen, Bathroom}
 
     struct RequestExtra {
@@ -84,7 +84,7 @@ contract HouseDecorationMarketPlace is AbstractOwnerManagerMarketPlace, ArrayExt
 
     // By sending the proposed price, agencies can complete and open their offer to compete for the house decoration contract.
     // (only the initial offer maker can access this function).
-    function submitOfferArrayExtra(uint offerID, uint[] calldata extra) external returns (uint8 status, uint offID) {
+    function submitOfferArrayExtra(uint offerID, uint[] calldata extra) external payable returns (uint8 status, uint offID) {
         Offer memory offer = offers[offerID];
         // offer undefined
         if(!offer.isDefined) {

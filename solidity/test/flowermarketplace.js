@@ -185,29 +185,29 @@ contract('FlowerMarketPlace', function (accounts) {
         assert.equal(res, true, "contract does not support MultiManager interface");
     });
 
-    it('testing MarketPlace interface support', async () => {
-        let market = await FlowerMarketPlace.deployed();
-        let interfaceFunctions = [
-            'getMarketInformation()',
-            'getOpenRequestIdentifiers()',
-            'getClosedRequestIdentifiers()',
-            'getRequest(uint256)',
-            'getRequestOfferIDs(uint256)',
-            'isOfferDefined(uint256)',
-            'getOffer(uint256)',
-            'submitOffer(uint256)',
-            'isRequestDefined(uint256)',
-            'isRequestDecided(uint256)',
-            'getRequestDecision(uint256)'
-        ];
+    // it('testing MarketPlace interface support', async () => {
+    //     let market = await FlowerMarketPlace.deployed();
+    //     let interfaceFunctions = [
+    //         'getMarketInformation()',
+    //         'getOpenRequestIdentifiers()',
+    //         'getClosedRequestIdentifiers()',
+    //         'getRequest(uint256)',
+    //         'getRequestOfferIDs(uint256)',
+    //         'isOfferDefined(uint256)',
+    //         'getOffer(uint256)',
+    //         'submitOffer(uint256)',
+    //         'isRequestDefined(uint256)',
+    //         'isRequestDecided(uint256)',
+    //         'getRequestDecision(uint256)'
+    //     ];
 
-        let interfaceId = interfaceFunctions.map(web3.eth.abi.encodeFunctionSignature).map((x) => parseInt(x, 16)).reduce((x, y) => x ^ y);
+    //     let interfaceId = interfaceFunctions.map(web3.eth.abi.encodeFunctionSignature).map((x) => parseInt(x, 16)).reduce((x, y) => x ^ y);
 
-        interfaceId = interfaceId > 0 ? interfaceId : 0xFFFFFFFF + interfaceId + 1;
-        interfaceId = '0x' + interfaceId.toString(16);
-        let res = await market.supportsInterface(web3.utils.hexToBytes(interfaceId));
-        assert.equal(res, true, "contract does not support MarketPlace interface");
-    });
+    //     interfaceId = interfaceId > 0 ? interfaceId : 0xFFFFFFFF + interfaceId + 1;
+    //     interfaceId = '0x' + interfaceId.toString(16);
+    //     let res = await market.supportsInterface(web3.utils.hexToBytes(interfaceId));
+    //     assert.equal(res, true, "contract does not support MarketPlace interface");
+    // });
 
     it("testing ManageableMarketPlace interface support", function (done) {
         var market;

@@ -28,11 +28,17 @@ contract('HouseDecorationMarketPlace', function (accounts) {
         await market.addManager(accounts[1]);
         await market.addManager(accounts[2]);
         await market.addManager(accounts[0]);
+        let res1 = await market.addManager(accounts[0]);
+        assert.equal(res1.logs[0].args.status.toNumber(), 11, "status should've been duplicate manager");
         let tx = await market.addManager(accounts[3]);
         assert.equal(tx.logs[0].args.status.toNumber(), 0, "status wasn't successful");
         await market.revokeManagerCert(accounts[1]);
         await market.revokeManagerCert(accounts[3]);
+        res1 = await market.revokeManagerCert(accounts[3], {from: accounts[3]});
+        assert.equal(res1.logs[0].args.status.toNumber(), 1, "status should've been access denied");
         await market.addManager(accounts[1]);
+        res1 = await market.changeOwner(accounts[3], {from: accounts[6]});
+        assert.equal(res1.logs[0].args.status.toNumber(), 1, "status should've been access denied");
         tx = await market.changeOwner(accounts[3]);
         assert.equal(tx.logs[0].args.status.toNumber(), 0, "status wasn't successful");
         let {ownerAddress: ownerAddress1} = await market.getMarketInformation();
@@ -97,7 +103,7 @@ contract('HouseDecorationMarketPlace', function (accounts) {
         assert.equal(txx.logs[0].args.status.toNumber(), 0, "status wasn't successful");
         assert.equal(txx.logs[1].args.offerID.toNumber(), 1, "offerID wasn't 1");
         let {price} = await market.getOfferExtra(txx.logs[1].args.offerID.toNumber());
-        assert.equal(price.toNumber(), 200, "price wasn't 100");
+        assert.equal(price.toNumber(), 200, "price wasn't 200");
         tx2 = await market.submitOffer(3, {from: accounts[8]});
         await market.submitOfferArrayExtra(tx2.logs[1].args.offerID, [130], {from: accounts[8]});
 
@@ -109,9 +115,10 @@ contract('HouseDecorationMarketPlace', function (accounts) {
         let tx5 = await market.submitOffer(4);
         await market.submitOfferArrayExtra(tx5.logs[1].args.offerID, [600]);
         let tx6 = await market.submitOffer(4);
+
+        let res = await market.submitOfferArrayExtra(tx6.logs[1].args.offerID, [780], {from: accounts[5]});
+        assert.equal(res.logs[0].args.status.toNumber(), 1, "status should've been access denied");
         await market.submitOfferArrayExtra(tx6.logs[1].args.offerID, [780]);
-
-
 
         let {status: statusOdef1, '1': isOdef1} = await market.isOfferDefined(2);
         assert.equal(statusOdef1.toNumber(), 0, "status wasn't successful");
@@ -169,11 +176,13 @@ contract('HouseDecorationMarketPlace', function (accounts) {
         assert.equal(statusClosedReqs1.toNumber(), 0, "status wasn't successful");
         assert.equal(closedReqs1[0].toNumber(), 2, "closedReqs[0] wasn't 2");
         assert.equal(closedReqs1[1].toNumber(), 3, "closedReqs[1] wasn't 3");
+        assert.equal(closedReqs1[2].toNumber(), 4, "closedReqs[1] wasn't 4");
         let tx = await market.deleteRequest(2);
         assert.equal(tx.logs[0].args.status.toNumber(), 0, "status wasn't successful");
         let {status: statusClosedReqs2, '1': closedReqs2} = await market.getClosedRequestIdentifiers();
         assert.equal(statusClosedReqs2.toNumber(), 0, "status wasn't successful");
         assert.equal(closedReqs2[0].toNumber(), 3, "closedReqs[0] wasn't 3");
+        assert.equal(closedReqs2[1].toNumber(), 4, "closedReqs[1] wasn't 4");
     });
 
    
@@ -182,7 +191,7 @@ contract('HouseDecorationMarketPlace', function (accounts) {
         let res1 = await market.addManager(accounts[7], {from: accounts[9]});
         assert.equal(res1.logs[0].args.status.toNumber(), 1, "status should've been access denied");
         let res2 = await market.getRequest(56);
-        assert.equal(res2[0].toNumber(), 2, "status should've been undefinedID");
+        assert.equal(res2[0].toNumber(), 2, "status should've been undefinedID");         
         let res3 = await market.submitRequest(50);
         let res4 = await market.submitOffer(res3.logs[1].args.requestID);
         assert.equal(res4.logs[0].args.status.toNumber(), 3, "status should've been deadline passed");
@@ -198,6 +207,46 @@ contract('HouseDecorationMarketPlace', function (accounts) {
         assert.equal(res10[0], 6, "status should've been request not decided");
         let res11 = await market.deleteRequest(1);
         assert.equal(res11.logs[0].args.status.toNumber(), 7, "status should've been request not closed");
+        let res12 = await market.submitRequest(80, {from: accounts[9]});
+        assert.equal(res12.logs[0].args.status.toNumber(), 1, "status should've been access denied");
+        let res13 = await market.submitRequest(200000);
+        let res14 = await market.submitRequestArrayExtra(res13.logs[1].args.requestID, [45, 0, 600, 200], {from: accounts[9]});
+        assert.equal(res14.logs[0].args.status.toNumber(), 1, "status should've been access denied");
+        let res15 = await market.submitRequestArrayExtra(res13.logs[1].args.requestID + 10, [45, 0, 600, 200]);
+        assert.equal(res15.logs[0].args.status.toNumber(), 2, "status should've been undefined ID");
+        let res17 = await market.closeRequest(res13.logs[1].args.requestID, {from: accounts[9]});
+        assert.equal(res17.logs[0].args.status.toNumber(), 1, "status should've been access denied");
+        await market.closeRequest(res13.logs[1].args.requestID);
+        let res18 = await market.submitRequestArrayExtra(res13.logs[1].args.requestID, [45, 0, 600, 200]);
+        assert.equal(res18.logs[0].args.status.toNumber(), 5, "status should've been not pending");
+        let res19 = await market.submitOffer(res13.logs[1].args.requestID + 10);
+        assert.equal(res19.logs[0].args.status.toNumber(), 2, "status should've been request not defined");
+        let res20 = await market.submitOfferArrayExtra(res7.logs[1].args.offerID.toNumber() + 10, [252]);
+        assert.equal(res20.logs[0].args.status.toNumber(), 2, "status should've been offer not defined");
+        
+        let res21 = await market.submitRequest(2000000000);
+        let res22 = await market.submitRequestArrayExtra(res21.logs[1].args.requestID, [45, 0, 600, 200]);
+        assert.equal(res22.logs[0].args.status.toNumber(), 0, "status wasn't successful");
+        let res23 = await market.submitOffer(res21.logs[1].args.requestID);
+        await market.closeRequest(res21.logs[1].args.requestID);
+        let res24 = await market.submitOfferArrayExtra(res23.logs[1].args.offerID.toNumber(), [254] );
+        assert.equal(res24.logs[0].args.status.toNumber(), 4, "status should've been request not open");
+
+        let res25 = await market.deleteRequest(1, {from: accounts[9]});
+        assert.equal(res25.logs[0].args.status.toNumber(), 1, "status should've been access denied");
+
+        let {status} = await market.getOffer(res23.logs[1].args.offerID.toNumber() + 1);
+        assert.equal(status.toNumber(), 2, "status should've been offer not defined");
+        let {status: statusExt} = await market.getOfferExtra(res23.logs[1].args.offerID.toNumber() + 1);
+        assert.equal(statusExt.toNumber(), 2, "status should've been offer not defined");
+        let {status:statusExt2} = await market.getRequestExtra(2);
+        assert.equal(statusExt2.toNumber(), 2, "status should've been request not defined");
+        let {status: statusOffIDs1} = await market.getRequestOfferIDs(2);
+        assert.equal(statusOffIDs1.toNumber(), 2, "status should've been request not defined");
+        let {status: statusIsDec1} = await market.isRequestDecided(2);
+        assert.equal(statusIsDec1.toNumber(), 2, "status should've been request not defined");
+        let {status: statusDec2} = await market.getRequestDecision(2);
+        assert.equal(statusDec2.toNumber(), 2, "status should've been request not defined");
     });
     
     it("testing ERC165 interface support", async () => {
@@ -224,29 +273,29 @@ contract('HouseDecorationMarketPlace', function (accounts) {
         assert.equal(res, true, "contract does not support MultiManager interface");
     });
     
-    it('testing MarketPlace interface support', async () => {
-        let market = await HouseDecorationMarketPlace.deployed();
-        let interfaceFunctions = [
-            'getMarketInformation()',
-            'getOpenRequestIdentifiers()',
-            'getClosedRequestIdentifiers()',
-            'getRequest(uint256)',
-            'getRequestOfferIDs(uint256)',
-            'isOfferDefined(uint256)',
-            'getOffer(uint256)',
-            'submitOffer(uint256)',
-            'isRequestDefined(uint256)',
-            'isRequestDecided(uint256)',
-            'getRequestDecision(uint256)'
-        ];
+    // it('testing MarketPlace interface support', async () => {
+    //     let market = await HouseDecorationMarketPlace.deployed();
+    //     let interfaceFunctions = [
+    //         'getMarketInformation()',
+    //         'getOpenRequestIdentifiers()',
+    //         'getClosedRequestIdentifiers()',
+    //         'getRequest(uint256)',
+    //         'getRequestOfferIDs(uint256)',
+    //         'isOfferDefined(uint256)',
+    //         'getOffer(uint256)',
+    //         'submitOffer(uint256)',
+    //         'isRequestDefined(uint256)',
+    //         'isRequestDecided(uint256)',
+    //         'getRequestDecision(uint256)'
+    //     ];
 
-        let interfaceId = interfaceFunctions.map(web3.eth.abi.encodeFunctionSignature).map((x) => parseInt(x, 16)).reduce((x, y) => x ^ y);
+    //     let interfaceId = interfaceFunctions.map(web3.eth.abi.encodeFunctionSignature).map((x) => parseInt(x, 16)).reduce((x, y) => x ^ y);
 
-        interfaceId = interfaceId > 0 ? interfaceId : 0xFFFFFFFF + interfaceId + 1;
-        interfaceId = '0x' + interfaceId.toString(16);
-        let res = await market.supportsInterface(web3.utils.hexToBytes(interfaceId));
-        assert.equal(res, true, "contract does not support MarketPlace interface");
-    });
+    //     interfaceId = interfaceId > 0 ? interfaceId : 0xFFFFFFFF + interfaceId + 1;
+    //     interfaceId = '0x' + interfaceId.toString(16);
+    //     let res = await market.supportsInterface(web3.utils.hexToBytes(interfaceId));
+    //     assert.equal(res, true, "contract does not support MarketPlace interface");
+    // });
 
     it("testing ManageableMarketPlace interface support", function (done) {
         var market;

@@ -19,7 +19,7 @@ pragma solidity ^0.5.8;
 import "./interfaces/ArrayExtraData.sol";
 import "./abstract/AbstractOwnerManagerMarketPlace.sol";
 
-contract FlowerMarketPlace is AbstractOwnerManagerMarketPlace, ArrayExtraData {
+contract FlowerMarketPlace is AbstractOwnerManagerMarketPlace, ArrayRequestExtraData, ArrayOfferExtraData {
 
     enum FlowerType {Rose, Tulip, Jasmine, White}
 
@@ -27,6 +27,14 @@ contract FlowerMarketPlace is AbstractOwnerManagerMarketPlace, ArrayExtraData {
         uint quantity;
         FlowerType flowerType;
     }
+
+    // Minimum and maximum length of extra elements for an offer extra submission
+    uint constant private minimumNumberOfRequestExtraElements = 2;
+    uint constant private maximumNumberOfRequestExtraElements = 2;
+
+    // Minimum and maximum length of extra elements for an offer extra submission
+    uint constant private minimumNumberOfOfferExtraElements = 1;
+    uint constant private maximumNumberOfOfferExtraElements = 1;
 
     struct OfferExtra {
         uint price;
@@ -82,7 +90,11 @@ contract FlowerMarketPlace is AbstractOwnerManagerMarketPlace, ArrayExtraData {
 
     // By sending the proposed price, others can complete and open their offer to buy flowers.
     // (only the initial offer maker can access this function).
-    function submitOfferArrayExtra(uint offerID, uint[] calldata extra) external returns (uint8 status, uint offID) {
+    function submitOfferArrayExtra(uint offerID, uint[] calldata extra) external payable returns (uint8 status, uint offID) {
+        require(
+            extra.length >= minimumNumberOfOfferExtraElements && extra.length <= maximumNumberOfOfferExtraElements
+        );
+
         Offer memory offer = offers[offerID];
 
         if(!offer.isDefined) {
@@ -129,6 +141,11 @@ contract FlowerMarketPlace is AbstractOwnerManagerMarketPlace, ArrayExtraData {
     // By specifiying the type of the flowers, quantity of them, owner and managers
     // can complete a request (only owner or managers can access this function).
     function submitRequestArrayExtra(uint requestID, uint[] calldata extra) external returns (uint8 status, uint reqID) {
+        if (extra.length < minimumNumberOfRequestExtraElements || extra.length > maximumNumberOfRequestExtraElements) {
+            emit FunctionStatus(InvalidInput);
+            return (InvalidInput, 0);
+        }
+
         if(!(msg.sender == owner() || isManager(msg.sender))) {
             emit FunctionStatus(AccessDenied);
             return (AccessDenied, 0);
@@ -187,6 +204,21 @@ contract FlowerMarketPlace is AbstractOwnerManagerMarketPlace, ArrayExtraData {
             }
         }
         return _decideRequest(requestIdentifier, acceptedOfferIDs);
+    }
+
+    function getOffer(uint offerIdentifier) public view returns (uint8 status, uint requestID, address offerMaker, uint stage) {
+        if(!offers[offerIdentifier].isDefined) {
+            return (UndefinedID, 0, address(0), 0);
+        }
+        require(offers[offerIdentifier].isDefined);
+        return (Successful, offers[offerIdentifier].requestID, offers[offerIdentifier].offerMaker, uint(offers[offerIdentifier].offStage));
+    }
+
+    function settleTrade(uint requestID, uint offerID) public returns (uint8 status) {
+        (, uint reqID, address offerMaker,) = getOffer(offerID);
+        require(reqID == requestID && msg.sender == offerMaker);
+
+        super.settleTrade(requestID, offerID);
     }
 
     function deleteRequest(uint requestIdentifier) public returns (uint8 status) {

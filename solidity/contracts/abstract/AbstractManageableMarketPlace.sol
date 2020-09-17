@@ -5,6 +5,9 @@ import "./AbstractMarketPlace.sol";
 
 contract AbstractManageableMarketPlace is AbstractMarketPlace, ManageableMarketPlace {
 
+    event RequestDecided(uint requestID, uint[] winningOffersIDs);
+    event RequestClosed(uint requestID);
+
     constructor() AbstractMarketPlace() ManageableMarketPlace() public {
         _registerInterface(this.submitRequest.selector
                             ^ this.closeRequest.selector
@@ -40,6 +43,15 @@ contract AbstractManageableMarketPlace is AbstractMarketPlace, ManageableMarketP
     }
 
     function closeRequest(uint requestIdentifier) public returns (uint8 status) {
+        // check request existance
+        (, bool isRequestDefined) = isRequestDefined(requestIdentifier);
+
+        if (!isRequestDefined) {
+            emit FunctionStatus(UndefinedID);
+            return UndefinedID;
+        }
+
+        // close the request, update relevant data & emit events
         requests[requestIdentifier].reqStage = Stage.Closed;
         requests[requestIdentifier].closingBlock = block.number;
         closedRequestIDs.push(requestIdentifier);
@@ -51,6 +63,7 @@ contract AbstractManageableMarketPlace is AbstractMarketPlace, ManageableMarketP
                 delete openRequestIDs[openRequestIDs.length-1];
                 openRequestIDs.length--;
                 emit FunctionStatus(Successful);
+                emit RequestClosed(requestIdentifier);
                 return Successful;
             }
         }
@@ -59,14 +72,42 @@ contract AbstractManageableMarketPlace is AbstractMarketPlace, ManageableMarketP
     function decideRequest(uint requestIdentifier, uint[] calldata /*acceptedOfferIDs*/) external returns (uint8 status);
 
     function _decideRequest(uint requestIdentifier, uint[] memory acceptedOfferIDs) internal returns(uint8 status) {
+        // check request existance
+        (, bool isRequestDefined) = isRequestDefined(requestIdentifier);
+
+        if (!isRequestDefined) {
+            emit FunctionStatus(UndefinedID);
+            return UndefinedID;
+        }
+
+        // // get request object
+        // Request storage request = requests[requestIdentifier];
+        
+        // // check request is closed
+        // if(request.reqStage != Stage.Closed) {
+        //     emit FunctionStatus(ReqNotClosed);
+        //     return ReqNotClosed;
+        // }
+
+        // close the request, update relevant data & emit events
         closeRequest(requestIdentifier);
         requests[requestIdentifier].acceptedOfferIDs = acceptedOfferIDs;
         requests[requestIdentifier].isDecided = true;
+        requests[requestIdentifier].decisionTime = now;
         emit FunctionStatus(Successful);
+        emit RequestDecided(requestIdentifier, acceptedOfferIDs);
         return Successful;
     }
 
     function deleteRequest(uint requestIdentifier) public returns (uint8 status) {
+        // check request existance
+        (, bool isRequestDefined) = isRequestDefined(requestIdentifier);
+
+        if (!isRequestDefined) {
+            emit FunctionStatus(UndefinedID);
+            return UndefinedID;
+        }
+        // delete request & update relevant data
         for (uint k = 0; k < requests[requestIdentifier].offerIDs.length; k++) {
             delete offers[requests[requestIdentifier].offerIDs[k]];
         }

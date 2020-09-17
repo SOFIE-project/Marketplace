@@ -417,6 +417,31 @@ Offers
 ------
 
 .. http:get:: /offer/
+   Returns the list of offers. This may include open, closed or both
+   open and closed offers depending on the query parameters.
+
+   **Example response with default query parameters**:
+   {
+      "offers": [
+         {
+            "id": 1,
+            "request_id": 3,
+            "author": "0xDbf6c3491Fb057D3a0a11B8eD7Bf3d0b61B451F7",
+            "extra": [
+                91
+            ],
+            "state": "open"
+         },
+         {
+            "id": 2,
+            "request_id": 6,
+            "author": "0xc2A85077d48931aeb0D47F86A071fA15Ae05E704",
+            "extra": [
+                78
+            ],
+            "state": "open"
+         },
+   }
 
    :<json object offers: Array of offers, see
 			 :http:get:`/offer/(int:offer_id)` for
@@ -427,6 +452,25 @@ Offers
    :statuscode 403: Forbidden
 
 .. http:get:: /offer/(int:offer_id)
+   Returns the details of a specific offer.
+
+   **Example response** (this uses extra data format from the flower
+    marketplace example):
+
+   .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+      Content-Type: application/json
+      
+      {
+         "id": 6,
+         "request_id": 18,
+         "author": "0xf21a8275C4718Ffb26f3D32593dA6523407FBFc4",
+         "extra": [
+            99
+         ],
+         "state": "open"
+      }
 
    :statuscode 200: Success
    :statuscode 401: Authentication required
@@ -437,6 +481,17 @@ Offers
    :<json int request_id: Request id to put the offer against
    :<json object extra: Extra parameters
 
+   **Example response**:
+
+   .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+      Content-Type: application/json
+
+      {
+        "offer_id": 2
+      }   
+
    :statuscode 200: Success
    :statuscode 202: Accepted
    :statuscode 401: Authentication required
@@ -444,6 +499,7 @@ Offers
    :statuscode 404: Request not found
 
 .. http:put:: /offer/(int:offer_id)
+   No implementation for the moment
 
    :statuscode 200: Success
    :statuscode 202: Accepted
@@ -451,6 +507,7 @@ Offers
    :statuscode 403: Forbidden
 
 .. http:delete:: /offer/(int:offer_id)
+   No implementation for the moment
 
    :statuscode 202: Accepted
    :statuscode 204: Deleted
@@ -462,6 +519,17 @@ Offers
 
    :<json int request_id: Request id to put the offer against
    :<json object extra: Extra parameters
+
+   **Example response**:
+
+   .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+      Content-Type: application/json
+
+      {
+        "offer_id": 2
+      }   
 
    :statuscode 200: Success
    :statuscode 202: Accepted
@@ -637,11 +705,134 @@ decision, and removal e.g. the request lifecycle.
 
 .. http:post:: /request/register/
 
+   :<json int request_id: Request id to put the extra data
    :<json object extra: Extra request parameters
 
    :statuscode 200: OK
    :statuscode 401: Authentication required
    :statuscode 403: Forbidden
+
+   
+Callbacks for Marketplace Events
+--------------------------------
+
+It is possible to register callbacks that will be called after the Marketplace 
+smart contract emits some event, for example `RequestAdded`.
+
+.. http:get:: /subscription/events/
+
+   Returns a list of available events for subscription. For example:
+    
+   .. sourcecode:: http
+    
+      HTTP/1.1 200 OK
+      Content-Type: application/json
+      
+      {
+        "events": [
+            "RequestAdded", 
+            "RequestExtraAdded", 
+            "OfferAdded", 
+            "OfferExtraAdded", 
+            "FunctionStatus", 
+            "OwnershipTransferred"
+        ]
+      }
+
+   :>json object events: Array of available event names as strings, for which a 
+        subscription can be requested.
+
+   :statuscode 200: Success
+   :statuscode 401: Authentication required
+   :statuscode 403: Forbidden
+
+   
+.. http:post:: /subscription/
+
+   Subscribes to the specific event.
+   
+   **Example request**:
+
+   .. sourcecode:: http
+
+      POST /subscription/ HTTP/1.1
+      Content-Type: application/json
+
+      {
+        "event": "RequestAdded",
+        "url": "https://mydomain.com/marketplace/callback/"
+      }
+
+   **Example response**:
+
+   .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+      Content-Type: application/json
+
+      {
+        "id": "c073a476-efd6-4dab-a93d-275d74526538"
+      }
+   
+   :<json string event: Name of the event to subscribe to
+   :<json string url: Callback URL
+   :>json string id: Subscription identifier in UUID version 4 format, 
+        which is used to view, update, or delete the subscription.
+
+   :statuscode 200: Success
+   :statuscode 400: Invalid request
+   :statuscode 401: Authentication required
+   :statuscode 403: Forbidden
+
+   
+.. http:get:: /subscription/(string:id)
+
+   Returns the event name and callback URL of the existing subscription.
+
+   :>json string event: Name of the event
+   :>json string url: Callback URL
+   
+   :statuscode 200: Success
+   :statuscode 400: Invalid request
+   :statuscode 401: Authentication required
+   :statuscode 403: Forbidden
+
+   
+.. http:put:: /subscription/(string:id)
+
+   Updates the existing subscription, the request must provide either 
+   a new event name or new callback URL.
+   
+      **Example request**:
+
+   .. sourcecode:: http
+
+      PUT /subscription/c073a476-efd6-4dab-a93d-275d74526538 HTTP/1.1
+      Content-Type: application/json
+
+      {
+        "url": "https://anotherdomain.com/marketplace/callback/"
+      }
+
+   :<json string event: Optional new name of the event to subscribe to
+   :<json string url: Optional new callback URL
+      
+   :statuscode 200: Success
+   :statuscode 400: Invalid request
+   :statuscode 401: Authentication required
+   :statuscode 403: Forbidden
+
+   
+.. http:delete:: /subscription/(string:id)
+
+   Deletes the existing subscription.
+
+   :statuscode 204: Deleted
+   :statuscode 400: Invalid request
+   :statuscode 401: Authentication required
+   :statuscode 403: Forbidden
+
+
 
 Marketplace Contract API
 ========================

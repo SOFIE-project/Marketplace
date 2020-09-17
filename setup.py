@@ -32,6 +32,9 @@ setup(
         'flask-restful',
         'web3',
         'dateparser',  # for offer-marketplace-cli
+        'kombu<5.0.2', # for backend
+        'celery==5.0.0rc2', # for backend
+        'redis', # backend
     ],
     entry_points={
         'console_scripts': ['offer-marketplace-cli=sofie_offer_marketplace_cli:main']

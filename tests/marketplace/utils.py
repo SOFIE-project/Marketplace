@@ -9,6 +9,32 @@ import sofie_offer_marketplace as om
 # and ethereum-backed contracts?
 
 
+def _check_existence(id, items: List):
+    for item in items:
+        if item['id'] == id:
+            return True
+    return False
+
+
+def _check_request_spec(req_res, request_id, web3contract):
+    assert req_res['id'] == request_id
+    assert req_res['from'] == web3contract.minter
+    assert req_res['deadline']
+    assert isinstance(req_res['extra'], list)
+    assert req_res['state'] in ("decided", "pending", "open", "closed")
+    assert isinstance(req_res['offers'], list)
+    assert isinstance(req_res['decision'], list)
+
+
+def _check_offer_spec(offer_res, offer_id, web3contract):
+    assert offer_res['id'] == offer_id
+    request_id = offer_res['request_id']
+    assert offer_id in web3contract.get_request(request_id)['offer_ids']
+    assert offer_res['author'] == web3contract.minter
+    assert 'extra' in offer_res
+    assert offer_res['extra'] is None or isinstance(offer_res['extra'], list)
+    assert offer_res['state'] in ("pending", "open", "closed")
+
 class MockRequest(om.Request):
     def __init__(self, request_id: int = None, **kwargs) -> None:
         quantity, type = kwargs.pop('quantity', None), kwargs.pop('type', None)

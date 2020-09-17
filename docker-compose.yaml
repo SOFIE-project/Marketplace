@@ -1,0 +1,41 @@
+# Docker Compose setup for testing SOFIE Marketplace backend
+# Contains Redis, Ganache, and Celery containers
+
+version: '3.4'
+services:
+    redis:
+        image: redis
+        expose:
+            - "6379"
+        ports:
+            - "6379:6379"
+        depends_on:
+            - ganache
+
+    ganache:
+        build:
+            context: .
+            dockerfile: Dockerfile.ganache
+        environment:
+            HOSTNAME: 0.0.0.0
+            PORT: 7545
+        expose:
+            - "7545"
+        ports:
+            - "7545:7545"
+
+    celery:
+        build:
+            context: .
+            target: build
+        depends_on:
+            - redis
+            
+        environment:
+            - REDIS_HOST=redis
+            - MARKETPLACE_CONFIG=${MARKETPLACE_CONFIG:-local-config.cfg}
+
+        volumes:
+            - "${PWD}/${MARKETPLACE_CONFIG}:/var/marketplace/${MARKETPLACE_CONFIG}:ro"
+
+        command: celery --broker=redis://redis:6379 --result-backend=redis://redis:6379 -A sofie_offer_marketplace.backend.app.celery worker --loglevel=INFO
