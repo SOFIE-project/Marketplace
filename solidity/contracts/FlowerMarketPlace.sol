@@ -185,7 +185,7 @@ contract FlowerMarketPlace is AbstractOwnerManagerMarketPlace, ArrayRequestExtra
     // Choose which offer to accept, based on the proposed prices. The decision process can differ for other markets,
     // and it can be very complicated. Even in some cases, the decision must be made in the backend.
     // (only owner or managers can access this function).
-    function decideRequest(uint requestIdentifier, uint[] calldata /*acceptedOfferIDs*/) external returns (uint8 status) {
+    function decideRequest(uint requestIdentifier, uint[] memory acceptedOfferIDs) public returns (uint8 status) {
         require(requests[requestIdentifier].isDefined);
         if(!(msg.sender == owner() || isManager(msg.sender))) {
             emit FunctionStatus(AccessDenied);
@@ -203,7 +203,22 @@ contract FlowerMarketPlace is AbstractOwnerManagerMarketPlace, ArrayRequestExtra
                 acceptedOfferIDs[0] = requests[requestIdentifier].offerIDs[i];
             }
         }
-        return _decideRequest(requestIdentifier, acceptedOfferIDs);
+        return decideRequestInsecure(requestIdentifier, acceptedOfferIDs);
+    }
+
+    function getOffer(uint offerIdentifier) public view returns (uint8 status, uint requestID, address offerMaker, uint stage) {
+        if(!offers[offerIdentifier].isDefined) {
+            return (UndefinedID, 0, address(0), 0);
+        }
+        require(offers[offerIdentifier].isDefined);
+        return (Successful, offers[offerIdentifier].requestID, offers[offerIdentifier].offerMaker, uint(offers[offerIdentifier].offStage));
+    }
+
+    function settleTrade(uint requestID, uint offerID) public returns (uint8 status) {
+        (, uint reqID, address offerMaker,) = getOffer(offerID);
+        require(reqID == requestID && msg.sender == offerMaker);
+
+        super.settleTrade(requestID, offerID);
     }
 
     function getOffer(uint offerIdentifier) public view returns (uint8 status, uint requestID, address offerMaker, uint stage) {

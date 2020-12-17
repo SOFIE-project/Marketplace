@@ -29,12 +29,15 @@ setup(
     # dependency_links=['git+ssh://git@version.aalto.fi/sofie/open-source/reference-platform.git#egg=sofie_reference_platform-0.1'],
     install_requires=[
         # 'sofie_reference_platform',
-        'flask-restful',
-        'web3',
-        'dateparser',  # for offer-marketplace-cli
-        'kombu<5.0.2', # for backend
-        'celery==5.0.0rc2', # for backend
-        'redis', # backend
+        'flask-restful==0.3.8',
+        'web3==5.13.0',
+        'dateparser==1.0.0',  # for offer-marketplace-cli
+        # 'kombu<5.0.2', # for backend
+        'celery==5.0.4', # for backend
+        'redis==3.5.3', # backend
+        # 'click==7.1.2',
+        # 'click-didyoumean==0.0.3',
+        # 'click-repl==0.1.6',
     ],
     entry_points={
         'console_scripts': ['offer-marketplace-cli=sofie_offer_marketplace_cli:main']

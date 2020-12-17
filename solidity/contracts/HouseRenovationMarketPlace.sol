@@ -172,7 +172,7 @@ contract HouseDecorationMarketPlace is AbstractOwnerManagerMarketPlace, ArrayReq
     // Choose which offer to accept, based on the proposed prices. The decision process can differ for other markets,
     // and it can be very complicated. Even in some cases, the decision must be made in the backend.
     // (only owner or managers can access this function).
-    function decideRequest(uint requestIdentifier, uint[] calldata /*acceptedOfferIDs*/) external returns (uint8 status) {
+    function decideRequest(uint requestIdentifier, uint[] memory acceptedOfferIDs) public returns (uint8 status) {
         require(requests[requestIdentifier].isDefined);
         if(!(msg.sender == owner() || isManager(msg.sender))) {
             emit FunctionStatus(AccessDenied);
@@ -190,7 +190,7 @@ contract HouseDecorationMarketPlace is AbstractOwnerManagerMarketPlace, ArrayReq
             OfferExtra memory offerExtra = offersExtra[requests[requestIdentifier].offerIDs[i]];
             if (offer.offStage == Stage.Open && offerExtra.price <= target) {
               acceptedOfferIDs[0] = requests[requestIdentifier].offerIDs[i];
-              return _decideRequest(requestIdentifier, acceptedOfferIDs);
+              return decideRequestInsecure(requestIdentifier, acceptedOfferIDs);
             }
             if (offer.offStage == Stage.Open && offerExtra.price > limit) {
               continue;
@@ -203,7 +203,7 @@ contract HouseDecorationMarketPlace is AbstractOwnerManagerMarketPlace, ArrayReq
         if (acceptedOfferIDs[0] == 0) {
           return Fail;
         }
-        return _decideRequest(requestIdentifier, acceptedOfferIDs);
+        return decideRequestInsecure(requestIdentifier, acceptedOfferIDs);
     }
 
     function deleteRequest(uint requestIdentifier) public returns (uint8 status) {

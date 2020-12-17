@@ -189,7 +189,7 @@ contract BeachChairMarketPlace is AbstractOwnerManagerMarketPlace, ArrayRequestE
     // By sending the identifiers of offers for a specific request, managers and owners can select the
     // of offers they want to accept. Some validity checks will be performed on the array of accepted offers,
     // before finalizing the decision (only owner or managers can access this function).
-    function decideRequest(uint requestIdentifier, uint[] calldata acceptedOfferIDs) external returns (uint8 status) {
+    function decideRequest(uint requestIdentifier, uint[] memory acceptedOfferIDs) public returns (uint8 status) {
         require(requests[requestIdentifier].isDefined);
         if(!(msg.sender == owner() || isManager(msg.sender))) {
             emit FunctionStatus(AccessDenied);
@@ -203,7 +203,7 @@ contract BeachChairMarketPlace is AbstractOwnerManagerMarketPlace, ArrayRequestE
         require(msg.sender == owner() || isManager(msg.sender));
         require(integrity);
 
-        return _decideRequest(requestIdentifier, acceptedOfferIDs);
+        return decideRequestInsecure(requestIdentifier, acceptedOfferIDs);
     }
 
     function deleteRequest(uint requestIdentifier) public returns (uint8 status) {

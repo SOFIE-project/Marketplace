@@ -131,14 +131,14 @@ contract DemoMarketPlace is AbstractOwnerManagerMarketPlace, ArrayRequestExtraDa
         return finishSubmitRequestExtra(requestID);
     }
 
-    function decideRequest(uint requestIdentifier, uint[] calldata acceptedOfferIDs) external returns (uint8 status) {
+    function decideRequest(uint requestIdentifier, uint[] memory acceptedOfferIDs) public returns (uint8 status) {
         if(!(msg.sender == owner() || isManager(msg.sender))) {
             emit FunctionStatus(AccessDenied);
             return AccessDenied;
         }
         require(msg.sender == owner() || isManager(msg.sender));
 
-        return _decideRequest(requestIdentifier, acceptedOfferIDs);
+        return decideRequestInsecure(requestIdentifier, acceptedOfferIDs);
     }
 
     function deleteRequest(uint requestIdentifier) public returns (uint8 status) {

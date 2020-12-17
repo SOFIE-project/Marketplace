@@ -53,7 +53,7 @@ contract PopulatedDemoMarketPlace is DemoMarketPlace {
         finishSubmitOfferExtra(offId);
 
         acceptedOfferIDs[0] = offId;
-        _decideRequest(reqId, acceptedOfferIDs);
+        decideRequestInsecure(reqId, acceptedOfferIDs);
     }
 
     function stepTwo() public {

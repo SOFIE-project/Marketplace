@@ -18,9 +18,12 @@ doc/html
 .mypy_cache/
 
 # Virtual environment
+/mp-dev/
 /venv/
 
 .vscode/
 
-# Test results
+# Test results and intermediate configs
 tests/*.xml
+test.cfg
+test_compose.cfg

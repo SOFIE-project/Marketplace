@@ -23,9 +23,10 @@
 - [License](#License)
 
 ## Description
+This is the Marketplace component of the [SOFIE Framework](https://github.com/SOFIE-project/Framework).
 
 The SOFIE Marketplace component provides a trading platform based on a generic request-offer (or
-proposal-bid) transaction model. It can be used to implement auctions using different pricing models.
+proposal-bid) transaction model. It can be used to implement auctions using different pricing models and follow the trade transactions to conclusion including successful receipt of the traded item.
 
 Examples of how the Marketplace can be used include
 - [flower marketplace](doc/examples.md/#Flower-Marketplace) and the [beach chair marketplace](doc/examples.md/#Beach-Chair-Marketplace), which are auctions, where the highest bid (or lowest depending on the auction)  wins
@@ -35,39 +36,13 @@ Examples of how the Marketplace can be used include
 
 The goal of the SOFIE Marketplace component is to enable the trade of
 different types of assets in an automated, decentralised, and flexible
-way. The actors (buyers and sellers) are able to carry out trades by
-placing bids and offers using the marketplace component, which
-utilises *Ethereum smart contracts*.
+way using *Ethereum smart contracts*.
 
 ![MarketplaceFlow](doc/images/MarketplaceFlow.png)
 
-Figure 1: The flow of an auction using the Marketplace component
+*Figure 1: The flow of an auction using the Marketplace component*
 
-Figure 1 show, how an auction takes place using the Marketplace component. First, the party wishing to sell something (Manager) creates a new auction, after which the potential buyers can submit their bids. Once the bidding time concludes, the Manager closes the auction and decides the winner. The winning bid can be the highest or the lowest depending on the type of auction as the Marketplace component supports [different pricing models](#Pricing-models). The winner then [pays for the item](#Payment-for-the-item) and the Manager delivers the item. Finally, the winner [confirms successful reception of the item](#Trade-settlement), thus creating a complete audit trail of the auction event. At any time, anyoune with access to the Marketplace (Marketplace can be public or limited to members only) can view or audit the status of the Marketplace.
-
-Figure 2 shows an overview of the Marketplace component and its interfaces. 
-The Marketplace component offers two interfaces: *Request Maker* for sellers 
-to create, manage, and conclude auctions, and *Offer Maker* for buyers to 
-participate and bid in auctions.
-
-![MarketplaceInterfaces](doc/images/MarketplaceInterfaces.png)
-
-Figure 2: Marketplace component's interfaces
-
-Figure 3 shows an internal structure of the Marketplace component. 
-*MarketplaceModule* includes functionality to communicate with Marketplace smart 
-contracts (which are shown as dotted lines). *MarketplaceInterface* smart contract 
-includes *Offer Maker* and *Request Maker* interfaces. *MarketplaceBase* includes all 
-the base functionalities for the Marketplace component, while *EthereumStandards*
-includes the standard Ethereum tokens like
-[ERC20](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md).
-
-
-![MarketplaceClasses](doc/images/MarketplaceClasses.png)
-Figure 3: Internal structure of the Marketplace component
-
-The component's technical design and architecture documentation can be
-found in the [doc](/doc/) directory.
+Figure 1 show, how an auction takes place using the Marketplace component. First, the party wishing to sell something (Manager) creates a new auction, after which the potential buyers can submit their bids. Once the bidding time concludes, the Manager closes the auction and decides the winner. The winning bid can be the highest or the lowest depending on the type of auction as the Marketplace component supports [different pricing models](#Pricing-models). The winner then [pays for the item](#Payment-for-the-item) and the Manager delivers the item. Finally, the winner [confirms successful reception of the item](#Trade-settlement), thus creating a complete audit trail of the auction event. At any time, anyoune with access to the Marketplace (Marketplace can be public or limited to members only) can view and audit the status of the Marketplace.
 
 #### Pricing models
 
@@ -84,7 +59,33 @@ The payment for the winning bid can implemented in different ways. Marketplace c
 
 #### Trade settlement
 
-An [interface](solidity/contracts/interfaces/TradeResource.sol) allows the winner of an auction to confirm that the traded item has actually been delivered, and thus, the auction as a whole has been settled. The interface has been implemented as the `settleTrade(uint requestID, uint[] offerIDs)` in the [Abstract Marketplace](solidity/contracts/abstract/AbstractMarketPlace.sol), where an event of `TradeSettled(requestID, offerIDs)` is emitted, so that applications can subscribe and get notified once the resource is delivered. Applications  can further expand the logic in the smart contracts to allow allow e.g. external oracle addresses to confirm the delivery of the item.
+An [interface](solidity/contracts/interfaces/TradeResource.sol) allows the winner of an auction to confirm that the traded item has actually been delivered, and thus, the auction as a whole has been settled. The interface has been implemented as the `settleTrade` function in the [Abstract Marketplace](solidity/contracts/abstract/AbstractMarketPlace.sol), where a corresponding event `TradeSettled` is emitted, so that applications can subscribe and get notified once the resource is delivered. Applications  can further expand the logic in the smart contracts to allow allow e.g. external oracle addresses to confirm the delivery of the item.
+
+#### Component interfaces and structure
+Figure 2 shows an overview of the Marketplace component and its interfaces. 
+The Marketplace component offers two interfaces: *Request Maker* for sellers 
+to create, manage, and conclude auctions, and *Offer Maker* for buyers to 
+participate and bid in auctions.
+
+![MarketplaceInterfaces](doc/images/MarketplaceInterfaces.png)
+
+*Figure 2: Marketplace component's interfaces*
+
+Figure 3 shows an internal structure of the Marketplace component. 
+*MarketplaceModule* includes functionality to communicate with Marketplace smart 
+contracts (which are shown as dotted lines). *MarketplaceInterface* smart contract 
+includes *Offer Maker* and *Request Maker* interfaces. *MarketplaceBase* includes all 
+the base functionalities for the Marketplace component, while *EthereumStandards*
+includes the standard Ethereum tokens like
+[ERC20](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md).
+
+
+![MarketplaceClasses](doc/images/MarketplaceClasses.png)
+
+*Figure 3: Internal structure of the Marketplace component*
+
+The component's technical design and architecture documentation can be
+found in the [doc](/doc/) directory.
 
 ### Relation with SOFIE
 
@@ -151,16 +152,7 @@ Then:
 	$ offer-marketplace-cli --manager add-request "in 5 minutes" 1000 0
 	$ offer-marketplace-cli list
 
-Or install pytest and dependencies:
-
-    $ pip install pytest pytest-asyncio pytest-mock pytest-mypy
-
-    
-To test example smart contracts, install Truffle:
-
-    $ cd solidity/
-    $ npm install
-
+Keep in mind that you should use `SET` instead of `export` in Windows.
 
 #### Flask backend APIs
 
@@ -232,10 +224,7 @@ curl localhost:5000/info
 
 ### Re-using the template
 
-This project can be extended in multiple ways. The recommended way is
-to use this project as a *dependency* in your own project, and re-use
-these components via imports or other references (depending on whether
-you are working on Python or Solidity parts of the code).
+## Usage
 
 * Most of the primary code is designed to be loosely coupled and
   re-usable. Thus, while the examples use Flask for building web

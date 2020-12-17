@@ -95,7 +95,7 @@ contract AbstractMarketPlace is TradeResource, MarketPlace, ERC165, StatusCodes 
         return (Successful, requests[requestIdentifier].offerIDs);
     }
 
-    function isOfferDefined(uint offerIdentifier) external view returns (uint8 status, bool) {
+    function isOfferDefined(uint offerIdentifier) public view returns (uint8 status, bool) {
         return (Successful, offers[offerIdentifier].isDefined);
     }
 
@@ -136,15 +136,23 @@ contract AbstractMarketPlace is TradeResource, MarketPlace, ERC165, StatusCodes 
         return (Successful, requests[requestIdentifier].isDecided);
     }
 
+    function settleTradeInsecure(uint requestID, uint offerID) internal returns (uint8 status) {
+        emit TradeSettled(requestID, offerID);
+        return Successful;
+    }
+
     function settleTrade(uint requestID, uint offerID) public returns (uint8 status) {
         (, bool isRequestDefined) = isRequestDefined(requestID);
         if (!isRequestDefined) {
             emit FunctionStatus(UndefinedID);
             return UndefinedID;
         }
-
-        emit TradeSettled(requestID, offerID);
-        return Successful;
+        (, bool isOfferDefined) = isOfferDefined(offerID);
+        if (!isOfferDefined) {
+            emit FunctionStatus(UndefinedID);
+            return UndefinedID;
+        }
+        settleTradeInsecure(requestID, offerID);
     }
 
     function getRequestDecisionTime(uint requestIdentifier) public view returns (uint8 status, uint) {

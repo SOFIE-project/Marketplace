@@ -28,10 +28,11 @@ with-compose:
 	sh ./update_config.sh solidity/build/contracts/FlowerMarketPlace.json http://localhost:7545 test.cfg
 	sed 's/^url=.*/url=http:\/\/ganache:7545/' test.cfg > test_compose.cfg
 
+	docker-compose build celery
 	MARKETPLACE_CONFIG=test_compose.cfg docker-compose up -d celery
 	sleep 5
 
-	$(MAKE) $(TARGET); ret=$$?; docker-compose down -v; exit $$ret
+	$(MAKE) $(TARGET); ret=$$?; docker-compose logs; docker-compose down -v; exit $$ret
 
 # test-success and test-failure for testing with-compose target itself
 test-success:
