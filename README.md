@@ -140,7 +140,7 @@ should be performed. First, set up truffle and a local Ethereum node
 	$ npm install
 	$ npm install -g ganache-cli
 	$ ganache-cli -p 7545
-	$ npx truffle migrate --reset --network ganache
+	$ npx truffle migrate --reset --network marketplace
 	$ cd ..
 	
 Then:
