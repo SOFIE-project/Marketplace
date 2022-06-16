@@ -221,21 +221,6 @@ contract FlowerMarketPlace is AbstractOwnerManagerMarketPlace, ArrayRequestExtra
         super.settleTrade(requestID, offerID);
     }
 
-    function getOffer(uint offerIdentifier) public view returns (uint8 status, uint requestID, address offerMaker, uint stage) {
-        if(!offers[offerIdentifier].isDefined) {
-            return (UndefinedID, 0, address(0), 0);
-        }
-        require(offers[offerIdentifier].isDefined);
-        return (Successful, offers[offerIdentifier].requestID, offers[offerIdentifier].offerMaker, uint(offers[offerIdentifier].offStage));
-    }
-
-    function settleTrade(uint requestID, uint offerID) public returns (uint8 status) {
-        (, uint reqID, address offerMaker,) = getOffer(offerID);
-        require(reqID == requestID && msg.sender == offerMaker);
-
-        super.settleTrade(requestID, offerID);
-    }
-
     function deleteRequest(uint requestIdentifier) public returns (uint8 status) {
         require(requests[requestIdentifier].isDefined);
         if(!(msg.sender == owner() || isManager(msg.sender))) {
