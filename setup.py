@@ -33,7 +33,7 @@ setup(
         'web3==5.13.0',
         'dateparser==1.0.0',  # for offer-marketplace-cli
         # 'kombu<5.0.2', # for backend
-        'celery==5.0.4', # for backend
+        'celery==5.2.2', # for backend
         'redis==3.5.3', # backend
         'eth-hash<0.4.0', # backend
         'flask==1.1.4', # backend
