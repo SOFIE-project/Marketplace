@@ -35,7 +35,11 @@ setup(
         # 'kombu<5.0.2', # for backend
         'celery==5.0.4', # for backend
         'redis==3.5.3', # backend
-        # 'click==7.1.2',
+        'eth-hash<0.4.0', # backend
+        'flask==1.1.4', # backend
+        'eth-rlp<0.3.0', # backend
+        'markupsafe==2.0.1', # backend
+        #'click==7.1.2',
         # 'click-didyoumean==0.0.3',
         # 'click-repl==0.1.6',
     ],
