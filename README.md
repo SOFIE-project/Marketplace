@@ -156,9 +156,9 @@ Keep in mind that you should use `SET` instead of `export` in Windows.
 
 #### Flask backend APIs
 
-The detailed specification of the APIs including the smart contracts, backend and event callbacks can be found in the [API document](/doc/api.rst).
+The detailed specification of the APIs including the smart contracts, backend and event callbacks can be found in the [API document](/doc/api.rst). Running a backend requires the ledger, actual Flask backend, Redis database, and Celery task queue.
 
-##### Environment set up
+##### Setting up the Ethereum ledger
 
 An Ethereum network needs to be set up, with the local example using the Ganache tool as follows
 
@@ -191,7 +191,7 @@ Then, the backend server can be run with the following command:
 python -m flask run
 ```
 
-###### Launch Celery worker for event callbacks
+##### Launch Celery worker for event callbacks
 
 To use the event callbacks features, a separate Celery worker needs be launched to handle the background jobs.
 
